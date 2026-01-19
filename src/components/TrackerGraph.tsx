@@ -479,7 +479,6 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                       key={node} 
                       onClick={() => removeCollectionItem(node)}
                       className="px-2.5 py-1 rounded-md text-sm font-medium bg-purple-500/10 hover:bg-red-500/10 text-purple-600 dark:text-purple-400 hover:text-red-600 dark:hover:text-red-400 border border-purple-500/20 hover:border-red-500/20 transition-colors cursor-pointer"
-                      title="Remove from collection"
                     >
                       {node}
                     </button>

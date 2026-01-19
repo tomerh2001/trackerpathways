@@ -4,7 +4,7 @@ import TrackerSearchApp from "@/components/TrackerSearchApp";
 
 export const metadata: Metadata = {
   title: "Tracker Pathways - Discover the private tracker network",
-  description: "Find your way to the trackers worth chasing.",
+  description: "Find your way to the trackers worth chasing. Explore detailed pathways, requirements, and invite tiers.",
 };
 
 export default function Home() {
