@@ -15,7 +15,7 @@ export default function TrackerSearchApp() {
   const [sourceSearch, setSourceSearch] = useState(searchParams.get("source") || "");
   const [targetSearch, setTargetSearch] = useState(searchParams.get("target") || "");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>((searchParams.get("view") as 'grid' | 'list') || 'grid');
-   
+    
   const [maxJumps, setMaxJumps] = useState<number>(
     searchParams.get("jumps") ? parseInt(searchParams.get("jumps")!) : 1
   );
@@ -28,13 +28,13 @@ export default function TrackerSearchApp() {
 
   const [showSourceSug, setShowSourceSug] = useState(false);
   const [showTargetSug, setShowTargetSug] = useState(false);
-   
+    
   const [sourceActiveIndex, setSourceActiveIndex] = useState(-1);
   const [targetActiveIndex, setTargetActiveIndex] = useState(-1);
 
   const sourceWrapperRef = useRef<HTMLDivElement>(null);
   const targetWrapperRef = useRef<HTMLDivElement>(null);
-   
+    
   const sourceListRef = useRef<HTMLDivElement>(null);
   const targetListRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +43,9 @@ export default function TrackerSearchApp() {
   const isStale = sourceSearch !== deferredSource || targetSearch !== deferredTarget;
 
   const [mounted, setMounted] = useState(false);
+
+  const [foundPaths, setFoundPaths] = useState<PathResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -63,9 +66,45 @@ export default function TrackerSearchApp() {
   }, [deferredSource, deferredTarget, viewMode, maxJumps, maxDays, sortBy, mounted, pathname, router]);
 
   useEffect(() => {
+    const fetchPaths = async () => {
+      if (!deferredSource && !deferredTarget) {
+        setFoundPaths([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (deferredSource) params.append("source", deferredSource);
+        if (deferredTarget) params.append("target", deferredTarget);
+        params.append("jumps", maxJumps.toString());
+        if (maxDays) params.append("days", maxDays.toString());
+
+        const res = await fetch(`/api/routes?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          setFoundPaths(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch routes", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+        fetchPaths();
+    }, 300); 
+
+    return () => clearTimeout(timeoutId);
+
+  }, [deferredSource, deferredTarget, maxJumps, maxDays]);
+
+  useEffect(() => {
      if (!searchParams.get("source") && !searchParams.get("target")) {
         setSourceSearch("");
         setTargetSearch("");
+        setFoundPaths([]);
       }
   }, [searchParams]);
 
@@ -235,139 +274,31 @@ export default function TrackerSearchApp() {
     });
   };
 
-  const foundPaths = useMemo(() => {
-    const sQueryRaw = deferredSource.toLowerCase().trim();
-    const sourceInputs = sQueryRaw ? sQueryRaw.split(',').map(s => s.trim()).filter(s => s) : [];
-    const tQuery = deferredTarget.toLowerCase().trim();
-
-    if (!sQueryRaw && !tQuery) return [];
-     
-    const isStrictTarget = allTrackers.some(t => 
-       t.toLowerCase() === tQuery || getAbbr(t).toLowerCase() === tQuery
-    );
-     
-    const results: any[] = [];
-    const queue: any[] = [];
-
-    const allTrackerKeys = Object.keys(data.routeInfo);
-    let startNodes: string[] = [];
-
-    if (sourceInputs.length > 0) {
-      startNodes = allTrackerKeys.filter(t => {
-        const tLower = t.toLowerCase();
-        const tAbbr = getAbbr(t).toLowerCase();
-        return sourceInputs.some(input => {
-            const isStrictInput = allTrackers.some(validT => validT.toLowerCase() === input || getAbbr(validT).toLowerCase() === input);
-            if (isStrictInput) {
-                return tLower === input || tAbbr === input;
-            }
-            return tLower.includes(input) || tAbbr === input;
-        });
-      });
-    } else {
-      if (tQuery) {
-        startNodes = allTrackerKeys;
-      }
-    }
-
-    const startNodeSet = new Set(startNodes);
-
-    startNodes.forEach(start => {
-      queue.push({
-        source: start,
-        target: start,
-        nodes: [start],
-        totalDays: 0,
-        routes: []
-      });
-    });
-
-    while (queue.length > 0) {
-      const currentPath = queue.shift()!;
-      const currentNode = currentPath.nodes[currentPath.nodes.length - 1];
-
-      if (currentPath.nodes.length > 1) {
-        let isTargetMatch = true;
-         
-        if (tQuery) {
-          const cName = currentNode.toLowerCase();
-          const cAbbr = getAbbr(currentNode).toLowerCase();
-
-          if (isStrictTarget) {
-             isTargetMatch = cName === tQuery || cAbbr === tQuery;
-          } else {
-             isTargetMatch = cName.includes(tQuery) || cAbbr.includes(tQuery);
-          }
-        }
-         
-        if (isTargetMatch) {
-          if (maxDays === null || (currentPath.totalDays !== null && currentPath.totalDays <= maxDays)) {
-            results.push(currentPath);
-          }
-        }
-      }
-
-      if (currentPath.routes.length >= maxJumps) continue;
-
-      const neighbors = data.routeInfo[currentNode];
-      if (neighbors) {
-        Object.entries(neighbors).forEach(([nextTracker, details]) => {
-          if (startNodeSet.has(nextTracker) && nextTracker.toLowerCase() !== tQuery) {
-             return;
-          }
-
-          if (!currentPath.nodes.includes(nextTracker)) {
-            const edgeDays = details.days; 
-            const forumReq = data.unlockInviteClass[currentNode];
-            const forumDays = forumReq ? forumReq[0] : 0;
-             
-            let stepDays: number | null = null;
-             
-            if (edgeDays !== null) {
-                stepDays = Math.max(edgeDays, forumDays || 0);
-            }
-
-            const nextTotalDays = (currentPath.totalDays === null || stepDays === null) ? null : currentPath.totalDays + stepDays;
-
-            if (maxDays !== null && nextTotalDays !== null && nextTotalDays > maxDays) return;
-
-            queue.push({
-              source: currentPath.source,
-              target: nextTracker,
-              nodes: [...currentPath.nodes, nextTracker],
-              totalDays: nextTotalDays,
-              routes: [...currentPath.routes, details] 
-            });
-          }
-        });
-      }
-    }
-
-    return results.sort((a, b) => {
+  const sortedPaths = useMemo(() => {
+    return [...foundPaths].sort((a, b) => {
       if (sortBy === 'days') {
         if (a.totalDays === null && b.totalDays !== null) return 1;
         if (a.totalDays !== null && b.totalDays === null) return -1;
         if (a.totalDays === null && b.totalDays === null) return 0;
         return a.totalDays - b.totalDays;
       }
-       
+        
       if (a.routes.length !== b.routes.length) {
         return a.routes.length - b.routes.length;
       }
-       
+        
       return a.target.localeCompare(b.target);
     });
-
-  }, [deferredSource, deferredTarget, maxJumps, maxDays, sortBy, allTrackers]);
+  }, [foundPaths, sortBy]);
 
   const groupedResults = useMemo(() => {
     const groups: { [key: string]: PathResult[] } = {};
-    foundPaths.forEach(path => {
+    sortedPaths.forEach(path => {
       if (!groups[path.source]) groups[path.source] = [];
       groups[path.source].push(path);
     });
     return groups;
-  }, [foundPaths]);
+  }, [sortedPaths]);
 
 
   if (!mounted) return <div className="w-full" />;
@@ -390,7 +321,7 @@ export default function TrackerSearchApp() {
 
         <div className="w-full max-w-2xl mx-auto bg-foreground/3 rounded-xl p-2 animate-in fade-in zoom-in-95 duration-500">
           <div className="flex flex-col relative">
-             
+              
             <div className="absolute left-4 top-4 bottom-14 flex flex-col items-center gap-1 z-0 pointer-events-none">
               <div className="w-2.5 h-2.5 rounded-full border-[3px] border-foreground/10 bg-background"></div>
               <div className="w-px flex-1 bg-linear-to-b from-foreground/10 to-foreground/10"></div>
@@ -528,7 +459,7 @@ export default function TrackerSearchApp() {
               <div>
                 <label className="text-sm font-medium text-foreground/50 mb-2 block">Max jumps</label>
                 <div className="flex rounded-lg bg-foreground/5 p-1">
-                  {[1, 2, 3, 5, 10].map((val) => (
+                  {[1, 2, 3, 4, 5].map((val) => (
                     <button
                       key={val}
                       onClick={() => setMaxJumps(val)}
@@ -603,7 +534,7 @@ export default function TrackerSearchApp() {
             <h2 className="text-sm font-medium text-foreground/50 tracking-wide">
               Search results
             </h2>
-            {isStale ? (
+            {isLoading || isStale ? (
               <div className="flex items-center gap-2 px-3 py-1 bg-foreground/5 rounded-md">
                 <span className="material-symbols-rounded text-lg text-foreground/50 animate-spin">progress_activity</span>
               </div>
@@ -714,7 +645,7 @@ export default function TrackerSearchApp() {
               );
             })}
             
-            {!isStale && foundPaths.length === 0 && (
+            {!isStale && !isLoading && foundPaths.length === 0 && (sourceSearch || targetSearch) && (
               <div className="flex flex-col items-center justify-center py-20 opacity-50 border-2 border-dashed border-foreground/10 rounded-lg">
                 <span className="material-symbols-rounded text-6xl mb-4 text-foreground/20">search_off</span>
                 <p className="text-foreground/50 font-medium">
