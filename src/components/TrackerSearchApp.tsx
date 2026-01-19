@@ -427,10 +427,9 @@ export default function TrackerSearchApp() {
                   onClick={() => setViewMode('grid')}
                   className={`p-1.5 rounded-sm flex items-center justify-center transition-all ${
                     viewMode === 'grid' 
-                      ? 'bg-card text-foreground' 
-                      : 'text-foreground/40 hover:text-foreground/70'
+                      ? 'bg-foreground/10 text-foreground' 
+                      : 'text-foreground/60 hover:text-foreground'
                   }`}
-                  title="Grid View"
                 >
                   <span className="material-symbols-rounded text-lg">grid_view</span>
                 </button>
@@ -438,10 +437,9 @@ export default function TrackerSearchApp() {
                   onClick={() => setViewMode('list')}
                   className={`p-1.5 rounded-sm flex items-center justify-center transition-all ${
                     viewMode === 'list' 
-                      ? 'bg-card text-foreground' 
-                      : 'text-foreground/40 hover:text-foreground/70'
+                      ? 'bg-foreground/10 text-foreground' 
+                      : 'text-foreground/60 hover:text-foreground'
                   }`}
-                  title="List View"
                 >
                   <span className="material-symbols-rounded text-lg">view_list</span>
                 </button>
