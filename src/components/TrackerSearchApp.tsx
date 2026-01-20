@@ -551,19 +551,23 @@ export default function TrackerSearchApp() {
                 <div key={sourceName} className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   
                   <div className="flex flex-col gap-2 px-1 pb-2 mb-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-lg font-bold text-foreground tracking-tight mr-1">{sourceName}</h3>
-                      
-                      {sourceAbbr && (
-                        <span className={badgeClass}>
-                          {sourceAbbr}
-                        </span>
-                      )}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-bold text-foreground tracking-tight mr-1">{sourceName}</h3>
+                        
+                        {sourceAbbr && (
+                          <span className={badgeClass}>
+                            {sourceAbbr}
+                          </span>
+                        )}
+                      </div>
 
                       {unlockInfo && (
-                        <div className={badgeClass}>
-                          <span className="material-symbols-rounded text-sm">lock_open</span>
-                          <span>{unlockInfo[1]} ({unlockInfo[0] !== null ? `${unlockInfo[0]}d` : 'Unknown'})</span>
+                        <div className="flex items-start gap-1.5 text-sm text-foreground/70 bg-foreground/5 px-2.5 py-1.5 rounded-md self-start w-fit max-w-full md:max-w-md">
+                          <span className="material-symbols-rounded text-sm shrink-0 mt-0.5">lock_open</span>
+                          <span className="leading-tight wrap-break-word">
+                             {unlockInfo[1]} {unlockInfo[0] !== null ? `(${unlockInfo[0]}d)` : ''}
+                          </span>
                         </div>
                       )}
                     </div>
