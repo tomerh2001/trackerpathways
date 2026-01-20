@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   reactCompiler: true,
   poweredByHeader: false,
+  allowedDevOrigins: ["trackerpathways.home.arpa"],
   async headers() {
     return [
       {
