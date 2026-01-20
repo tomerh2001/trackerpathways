@@ -44,10 +44,10 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           <Link 
             href="/map" 
-            className={`w-9 h-9 flex items-center justify-center transition-colors ${
+            className={`w-9 h-9 flex items-center justify-center rounded-md transition-all hover:bg-foreground/5 hover:text-foreground ${
               pathname === "/map" 
                 ? "text-foreground" 
-                : "text-foreground/60 hover:text-foreground"
+                : "text-foreground/60"
             }`}
             aria-label="View Map"
           >
@@ -56,10 +56,10 @@ export default function Navbar() {
 
           <Link 
             href="/directory" 
-            className={`w-9 h-9 flex items-center justify-center transition-colors ${
+            className={`w-9 h-9 flex items-center justify-center rounded-md transition-all hover:bg-foreground/5 hover:text-foreground ${
               pathname === "/directory" 
                 ? "text-foreground" 
-                : "text-foreground/60 hover:text-foreground"
+                : "text-foreground/60"
             }`}
             aria-label="Tracker Directory"
           >

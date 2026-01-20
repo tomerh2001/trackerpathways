@@ -241,9 +241,9 @@ export default function TrackerSearchApp() {
 
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase();
-    if (s === 'yes' || s === 'open') return 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/40';
-    if (s === 'no' || s === 'closed') return 'text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/40';
-    return 'text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/40';
+    if (s === 'yes' || s === 'open') return 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30';
+    if (s === 'no' || s === 'closed') return 'text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/30';
+    return 'text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/30';
   };
 
   const getStatusLabel = (status: string) => {
@@ -303,7 +303,7 @@ export default function TrackerSearchApp() {
 
   if (!mounted) return <div className="w-full" />;
 
-  const abbrClass = "text-xs font-semibold text-foreground/70 bg-foreground/10 rounded-md shrink-0 px-1.5 py-0.5";
+  const badgeClass = "flex items-center gap-1.5 text-xs font-semibold text-foreground/80 bg-foreground/10 px-2 py-0.5 rounded-md shrink-0 whitespace-nowrap";
 
   return (
     <>
@@ -319,7 +319,7 @@ export default function TrackerSearchApp() {
           </div>
         )}
 
-        <div className="w-full max-w-2xl mx-auto bg-foreground/3 rounded-xl p-2 animate-in fade-in zoom-in-95 duration-500">
+        <div className="w-full max-w-2xl mx-auto bg-foreground/3 border border-foreground/10 rounded-xl p-2 animate-in fade-in zoom-in-95 duration-500">
           <div className="flex flex-col relative">
               
             <div className="absolute left-4 top-4 bottom-14 flex flex-col items-center gap-1 z-0 pointer-events-none">
@@ -451,7 +451,7 @@ export default function TrackerSearchApp() {
         </div>
 
         {showFilters && (
-          <div className="max-w-2xl mx-auto mt-2 p-6 bg-foreground/3 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="max-w-2xl mx-auto mt-2 p-6 bg-foreground/3 border border-foreground/10 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               <div>
@@ -475,7 +475,7 @@ export default function TrackerSearchApp() {
 
               <div>
                 <label className="text-sm font-medium text-foreground/50 mb-2 block">Max days</label>
-                <div className="flex rounded-lg bg-foreground/5 p-1 overflow-x-auto">
+                <div className="flex rounded-lg bg-foreground/5 p-1">
                   {[
                     { l: 'Any', v: null },
                     { l: '90d', v: 90 },
@@ -528,8 +528,8 @@ export default function TrackerSearchApp() {
 
       {(sourceSearch || targetSearch) && (
         <div className="mt-12 animate-in fade-in slide-in-from-bottom-8 duration-500">
-          <div className="flex items-center justify-between mb-5 px-1">
-            <h2 className="text-sm font-medium text-foreground/50 tracking-wide">
+          <div className="flex items-center gap-3 mb-5 px-1">
+            <h2 className="text-sm font-medium text-foreground/50">
               Search results
             </h2>
             {isLoading || isStale ? (
@@ -537,7 +537,7 @@ export default function TrackerSearchApp() {
                 <span className="material-symbols-rounded text-lg text-foreground/50 animate-spin">progress_activity</span>
               </div>
             ) : (
-              <span className="text-sm font-medium font-sans text-foreground bg-foreground/5 px-3 py-1 rounded-md">{foundPaths.length} Found</span>
+              <span className={badgeClass}>{foundPaths.length} Found</span>
             )}
           </div>
 
@@ -550,18 +550,23 @@ export default function TrackerSearchApp() {
               return (
                 <div key={sourceName} className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 pb-2 mb-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-xl font-bold text-foreground tracking-tight">{sourceName}</h3>
-                      {sourceAbbr && <span className={`px-1.5 py-0.5 text-xs font-semibold text-foreground/70 bg-foreground/10 rounded-md`}>{sourceAbbr}</span>}
+                  <div className="flex flex-col gap-2 px-1 pb-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight mr-1">{sourceName}</h3>
+                      
+                      {sourceAbbr && (
+                        <span className={badgeClass}>
+                          {sourceAbbr}
+                        </span>
+                      )}
+
+                      {unlockInfo && (
+                        <div className={badgeClass}>
+                          <span className="material-symbols-rounded text-sm">lock_open</span>
+                          <span>{unlockInfo[1]} ({unlockInfo[0] !== null ? `${unlockInfo[0]}d` : 'Unknown'})</span>
+                        </div>
+                      )}
                     </div>
-                    
-                    {unlockInfo && (
-                      <div className="flex items-center gap-2 w-fit self-start md:self-auto text-sm text-foreground/60 bg-foreground/5 px-2.5 py-1 md:px-3 md:py-1.5 rounded-md mt-1 md:mt-0">
-                        <span className="material-symbols-rounded text-lg">lock_open</span>
-                        <span className="font-medium">{unlockInfo[1]} ({unlockInfo[0] !== null ? `${unlockInfo[0]}d` : 'Unknown'})</span>
-                      </div>
-                    )}
                   </div>
 
                   <div className={
@@ -574,7 +579,7 @@ export default function TrackerSearchApp() {
                       const isDirect = path.routes.length === 1;
 
                       return (
-                        <div key={idx} className="group flex flex-col p-5 rounded-xl bg-card transition-colors duration-200 h-full">
+                        <div key={idx} className="group flex flex-col p-5 rounded-xl bg-card border border-foreground/10 transition-colors duration-200 h-full">
                           
                           <div className="flex justify-between items-start mb-3 gap-4"> 
                             <div className="min-w-0">
@@ -583,18 +588,18 @@ export default function TrackerSearchApp() {
                                 <div className="font-bold text-foreground text-lg wrap-break-word">{path.target}</div>
                                 
                                 <div className="flex items-center gap-2 shrink-0">
-                                  <span className={abbrClass}>
+                                  <span className={badgeClass}>
                                     {targetAbbr}
                                   </span>
 
-                                  {!isDirect && <span className="text-xs font-medium bg-foreground/10 text-foreground/60 px-1.5 py-0.5 rounded-md whitespace-nowrap">{path.routes.length} hop</span>}
+                                  {!isDirect && <span className={badgeClass}>{path.routes.length} hop</span>}
                                 </div>
                               </div>
                               
                               <div className="text-sm font-medium text-foreground/50 tracking-wide flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
                                 <span>From</span>
                                 <span className="text-foreground/80 font-medium">{sourceName}</span>
-                                <span className={abbrClass}>
+                                <span className={badgeClass}>
                                   {sourceAbbr}
                                 </span>
                               </div>

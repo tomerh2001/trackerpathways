@@ -290,12 +290,12 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
 
       <div className={`absolute top-4 left-4 z-20 flex flex-col gap-4 ${selectedNodeId ? "hidden md:flex" : ""}`}>
 
-        <div className={`relative z-30 bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-500 ease-in-out ${isPanelOpen ? "w-64 md:w-80" : "w-12"}`}>
+        <div className={`relative z-30 bg-card/90 backdrop-blur border border-foreground/10 rounded-xl transition-all duration-500 ease-in-out ${isPanelOpen ? "w-64 md:w-80" : "w-12"}`}>
           <button
             onClick={() => setIsPanelOpen(!isPanelOpen)}
             className={`w-full flex items-center py-3 text-left outline-none whitespace-nowrap overflow-hidden transition-all duration-500 ${isPanelOpen ? "justify-start px-4" : "justify-center px-0"}`}
           >
-            <span className={`material-symbols-rounded text-lg shrink-0 transition-transform duration-300 ${isPanelOpen ? "rotate-90 text-green-500" : "text-foreground"}`}>
+            <span className={`material-symbols-rounded text-lg shrink-0 transition-transform duration-300 text-foreground ${isPanelOpen ? "rotate-90" : ""}`}>
               directions
             </span>
             <span className={`text-sm font-bold tracking-tight transition-all duration-500 ${isPanelOpen ? "opacity-100 max-w-[200px] ml-2" : "opacity-0 max-w-0 ml-0"}`}>
@@ -307,7 +307,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
             )}
           </button>
 
-          <div className={`transition-all duration-500 ease-in-out ${isPanelOpen ? "max-h-[500px] opacity-100 border-t border-border/50 overflow-visible" : "max-h-0 opacity-0 border-t-0 overflow-hidden"}`}>
+          <div className={`transition-all duration-500 ease-in-out ${isPanelOpen ? "max-h-[500px] opacity-100 border-t border-foreground/10 overflow-visible" : "max-h-0 opacity-0 border-t-0 overflow-hidden"}`}>
             <div className="p-4 flex flex-col gap-4 min-w-[250px]">
               
               <div className="flex flex-col gap-1.5 relative">
@@ -315,7 +315,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                 <input
                   type="text"
                   placeholder="Search starting tracker..."
-                  className="w-full bg-foreground/5 border border-border/30 rounded-md text-sm p-2.5 outline-none focus:border-green-500/50 transition-colors"
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-md text-sm p-2.5 outline-none focus:border-green-500/50 transition-colors"
                   value={pathStartInput}
                   onFocus={() => setShowPathStartSug(true)}
                   onChange={(e) => {
@@ -330,7 +330,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                 {showPathStartSug && getSuggestions(pathStartInput).length > 0 && (
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setShowPathStartSug(false)} />
-                    <div className="absolute top-full left-0 w-full mt-1 bg-card border border-border/50 rounded-xl overflow-hidden z-40 max-h-40 overflow-y-auto p-1" ref={pathStartListRef}>
+                    <div className="absolute top-full left-0 w-full mt-1 bg-card border border-foreground/10 rounded-xl overflow-hidden z-40 max-h-40 overflow-y-auto p-1" ref={pathStartListRef}>
                       {getSuggestions(pathStartInput).map((item, i) => (
                         <div
                           key={i}
@@ -354,7 +354,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                 <input
                   type="text"
                   placeholder="Search destination tracker..."
-                  className="w-full bg-foreground/5 border border-border/30 rounded-md text-sm p-2.5 outline-none focus:border-green-500/50 transition-colors"
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-md text-sm p-2.5 outline-none focus:border-green-500/50 transition-colors"
                   value={pathEndInput}
                   onFocus={() => setShowPathEndSug(true)}
                   onChange={(e) => {
@@ -369,7 +369,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                 {showPathEndSug && getSuggestions(pathEndInput).length > 0 && (
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setShowPathEndSug(false)} />
-                    <div className="absolute top-full left-0 w-full mt-1 bg-card border border-border/50 rounded-xl overflow-hidden z-40 max-h-40 overflow-y-auto p-1" ref={pathEndListRef}>
+                    <div className="absolute top-full left-0 w-full mt-1 bg-card border border-foreground/10 rounded-xl overflow-hidden z-40 max-h-40 overflow-y-auto p-1" ref={pathEndListRef}>
                       {getSuggestions(pathEndInput).map((item, i) => (
                         <div
                           key={i}
@@ -415,12 +415,12 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
           </div>
         </div>
 
-        <div className={`relative z-20 bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl transition-all duration-500 ease-in-out ${isCollectionPanelOpen ? "w-64 md:w-80" : "w-12"}`}>
+        <div className={`relative z-20 bg-card/90 backdrop-blur border border-foreground/10 rounded-xl transition-all duration-500 ease-in-out ${isCollectionPanelOpen ? "w-64 md:w-80" : "w-12"}`}>
           <button
             onClick={() => setIsCollectionPanelOpen(!isCollectionPanelOpen)}
             className={`w-full flex items-center py-3 text-left outline-none whitespace-nowrap overflow-hidden transition-all duration-500 ${isCollectionPanelOpen ? "justify-start px-4" : "justify-center px-0"}`}
           >
-            <span className={`material-symbols-rounded text-lg shrink-0 transition-transform duration-300 ${isCollectionPanelOpen ? "rotate-90 text-purple-500" : "text-foreground"}`}>
+            <span className={`material-symbols-rounded text-lg shrink-0 transition-transform duration-300 text-foreground ${isCollectionPanelOpen ? "rotate-90" : ""}`}>
               bookmarks
             </span>
             <span className={`text-sm font-bold tracking-tight transition-all duration-500 ${isCollectionPanelOpen ? "opacity-100 max-w-[200px] ml-2" : "opacity-0 max-w-0 ml-0"}`}>
@@ -432,14 +432,14 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
             )}
           </button>
 
-          <div className={`transition-all duration-500 ease-in-out ${isCollectionPanelOpen ? "max-h-[500px] opacity-100 border-t border-border/50 overflow-visible" : "max-h-0 opacity-0 border-t-0 overflow-hidden"}`}>
+          <div className={`transition-all duration-500 ease-in-out ${isCollectionPanelOpen ? "max-h-[500px] opacity-100 border-t border-foreground/10 overflow-visible" : "max-h-0 opacity-0 border-t-0 overflow-hidden"}`}>
             <div className="p-4 flex flex-col gap-4 min-w-[250px]">
               <div className="flex flex-col gap-1.5 relative" ref={collectionWrapperRef}>
                 <label className="text-sm font-medium text-muted-foreground ml-1">My Trackers</label>
                 <input
                   type="text"
                   placeholder="Add tracker to collection..."
-                  className="w-full bg-foreground/5 border border-border/30 rounded-md text-sm p-2.5 outline-none focus:border-purple-500/50 transition-colors"
+                  className="w-full bg-foreground/5 border border-foreground/10 rounded-md text-sm p-2.5 outline-none focus:border-purple-500/50 transition-colors"
                   value={collectionInput}
                   onFocus={() => setShowCollectionSug(true)}
                   onChange={(e) => {
@@ -453,7 +453,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                 {showCollectionSug && getSuggestions(collectionInput).length > 0 && (
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setShowCollectionSug(false)} />
-                    <div className="absolute top-full left-0 w-full mt-1 bg-card border border-border/50 rounded-xl overflow-hidden z-40 max-h-40 overflow-y-auto p-1" ref={collectionListRef}>
+                    <div className="absolute top-full left-0 w-full mt-1 bg-card border border-foreground/10 rounded-xl overflow-hidden z-40 max-h-40 overflow-y-auto p-1" ref={collectionListRef}>
                       {getSuggestions(collectionInput).map((item, i) => (
                         <div
                           key={i}
@@ -628,12 +628,12 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
       </div>
 
       {!activePath && selectedNodeId && selectedNodeDetails && (
-        <aside className="absolute top-4 bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-80 flex flex-col rounded-xl bg-card/95 backdrop-blur border border-border/50 z-10 overflow-hidden animate-in slide-in-from-right-10 fade-in duration-300">
-          <div className="flex items-center justify-between p-5 border-b border-border/40 shrink-0">
+        <aside className="absolute top-4 bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-80 flex flex-col rounded-xl bg-card/90 backdrop-blur border border-foreground/10 z-10 overflow-hidden animate-in slide-in-from-right-10 fade-in duration-300">
+          <div className="flex items-center justify-between p-5 border-b border-foreground/10 shrink-0">
             <h2 className="text-xl font-bold tracking-tight truncate pr-2">{selectedNodeId}</h2>
             <button
               onClick={() => setSelectedNodeId(null)}
-              className="p-1.5 rounded-full transition-opacity opacity-70 hover:opacity-100 hover:bg-foreground/5"
+              className="p-1.5 rounded-full transition-opacity opacity-70 hover:opacity-100"
             >
               <span className="material-symbols-rounded text-lg">close</span>
             </button>
@@ -648,7 +648,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                 </h3>
                 <div className="space-y-3">
                   {Object.entries(selectedNodeDetails.outgoing).map(([target, info]: [string, any]) => (
-                    <div key={target} className="p-4 rounded-xl bg-foreground/5 border border-border/30">
+                    <div key={target} className="p-4 rounded-xl bg-foreground/5 border border-foreground/10">
                       <div className="font-bold text-base mb-1">{target}</div>
                       <div className="text-sm text-muted-foreground leading-relaxed">
                         {info.reqs || "No specific requirements."}
@@ -667,7 +667,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                 </h3>
                 <div className="space-y-3">
                   {Object.entries(selectedNodeDetails.incoming).map(([source, info]: [string, any]) => (
-                    <div key={source} className="p-4 rounded-xl bg-foreground/5 border border-border/30">
+                    <div key={source} className="p-4 rounded-xl bg-foreground/5 border border-foreground/10">
                       <div className="font-bold text-base mb-1">{source}</div>
                       <div className="text-sm text-muted-foreground leading-relaxed">
                         {info.reqs || "No specific requirements."}
