@@ -7,7 +7,6 @@ Discover the private tracker network.
 
 <div align="center">
   <img src="./public/dashboard.png" alt="Tracker Pathways Dashboard" width="100%" />
-  <img src="./public/graph.png" alt="Tracker Pathways Graph" width="100%" />
 </div>
 
 Tracker Pathways is an open source tool designed to map the private tracker network, enabling exploration of invite routes with detailed requirements or visualization of connections using an interactive force directed graph to find the optimal path between communities.
