@@ -55,7 +55,7 @@ export default function DirectoryPageClient() {
           {filteredTrackers.map((t) => (
             <div 
               key={t.name} 
-              className="bg-card border border-foreground/10 rounded-xl p-4 flex items-center justify-between transition-colors hover:bg-foreground/2"
+              className="bg-card border border-foreground/10 rounded-xl p-4 flex items-center justify-between"
             >
               <span className="text-sm font-medium truncate text-foreground/80 pr-3" title={t.name}>
                 {t.name}
