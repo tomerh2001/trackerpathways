@@ -1,6 +1,6 @@
 services:
   trackerpathways:
-    image: ghcr.io/handokota/trackerpathways:latest
+    image: handokota/trackerpathways:latest
     container_name: trackerpathways
     restart: unless-stopped
     ports:
