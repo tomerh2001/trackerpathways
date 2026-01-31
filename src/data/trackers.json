@@ -242,7 +242,6 @@
       "PassThePopcorn": { "days": 730, "reqs": "Titan+, 2 years, 200 uploads", "active": "Yes", "updated": "Dec 2025" },
       "Racing4Everyone": { "days": 0, "reqs": "Prometheus+", "active": "Yes", "updated": "Dec 2025" },
       "ReelFliX": { "days": 0, "reqs": "Prometheus+", "active": "Yes", "updated": "Dec 2025" },
-      "Samaritano": { "days": 0, "reqs": "Profile link and screenshots", "active": "Yes", "updated": "Jan 2026" },
       "seedpool": { "days": 0, "reqs": "1TiB seedsize", "active": "Yes", "updated": "Dec 2025" },
       "Unwalled": { "days": 0, "reqs": "Harmonia+, 5 seeded uploads", "active": "Yes", "updated": "Dec 2025" }
     },
