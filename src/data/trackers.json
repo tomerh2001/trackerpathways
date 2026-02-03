@@ -30,7 +30,7 @@
     "CGPeers": "CGP",
     "ChileBT": "CHB",
     "Cinemageddon": "CG",
-    "Cinematik": "CTK",
+    "Cinematik": "TiK",
     "CinemaZ": "CZ",
     "ClearJAV": "CJV",
     "Concertos": "CTS",
@@ -110,7 +110,7 @@
     "Phoenix Project": "PHX",
     "PixelCove": "PxC",
     "PixelHD": "PxHD",
-    "PolishTorrent": "PLT",
+    "PolishTorrent": "PTT",
     "PornBay": "PB",
     "Portugas": "PTS",
     "PreToMe": "PTM",
@@ -403,6 +403,14 @@
     "BroadCity": {
       "PTerClub": { "days": 120, "reqs": "Gold User+, 4 months, 2 proofs from another tracker", "active": "No", "updated": "May 2024" },
       "TeamHD": { "days": 0, "reqs": "No requirement", "active": "Unknown", "updated": "Jan 2024" }
+    },
+    "CapybaraBR": {
+      "DarkPeers": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" },
+      "F1Carreras": { "days": 90, "reqs": "3 months", "active": "Yes", "updated": "Feb 2026" },
+      "FearNoPeer": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" },
+      "LST": { "days": 90, "reqs": "3 months", "active": "Yes", "updated": "Feb 2026" },
+      "OldToonsWorld": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" },
+      "YuScene": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" }
     },
     "Cathode-Ray.Tube": {
       "Aither": { "days": null, "reqs": "Unknown", "active": "Unknown", "updated": "Dec 24" },
