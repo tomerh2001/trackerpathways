@@ -823,11 +823,13 @@
       "YuScene": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Aug 2025" }
     },
     "RetroFlix": {
-      "eShareNet": { "days": 0, "reqs": "No requirement", "active": "No", "updated": "Jul 2025" },
-      "Great Poster Wall": { "days": 0, "reqs": "upload 10 non music torrents or 5+ album torrents", "active": "Yes", "updated": "Jul 2025" },
-      "seedpool": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Jul 2025" },
-      "SpeedApp": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Jul 2025" },
-      "TBDev": { "days": 0, "reqs": "Unstated", "active": "Unknown", "updated": "Jul 2025" }
+      "DarkPeers": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" },
+      "DigitalCore.Club": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" },
+      "FearNoPeer": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" },
+      "Great Poster Wall": { "days": 0, "reqs": "upload 10 non music torrents or 5+ album torrents", "active": "Yes", "updated": "Feb 2026" },
+      "LST": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" },
+      "seedpool": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" },
+      "SpeedApp": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" }
     },
     "RocketHD": {
       "AnimeWorld": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Nov 2025" },
