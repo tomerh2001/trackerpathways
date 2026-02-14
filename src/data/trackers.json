@@ -707,6 +707,7 @@
       "ExtremeBits": { "days": 365, "reqs": "1 year", "active": "Yes", "updated": "Feb 2026" },
       "GazelleGames": { "days": 90, "reqs": "3 months", "active": "Yes", "updated": "Feb 2026" },
       "HDBits": { "days": 730, "reqs": "TM+, 2 years, >=50% of uploads are music and fulfill at least 2 of the 4 following requirements: 1. Be seeding 500 GiB of MUSIC (neutral leech is excluded). 2. Be seeding 100% of your snatches. 3. Have 500 perfect FLACs. 4. Three years.", "active": "Yes", "updated": "Feb 2026" },
+      "Luminarr": { "days": 90, "reqs": "3 months", "active": "Yes", "updated": "Feb 2026" },
       "LzTr": { "days": 180, "reqs": "6 months", "active": "Yes", "updated": "Feb 2026" },
       "MoreThanTV": { "days": 180, "reqs": "6 months (26 weeks), ratio >= 1.5", "active": "Yes", "updated": "Feb 2026" },
       "Nebulance": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Feb 2026" },
