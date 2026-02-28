@@ -4,13 +4,17 @@ import { DataStructure, PathResult } from "@/types";
 
 const data = rawData as unknown as DataStructure;
 
+interface RouteSearchResult extends PathResult {
+  stepDays: Array<number | null>;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const sourceRaw = searchParams.get("source") || "";
   const targetRaw = searchParams.get("target") || "";
-  const maxJumps = parseInt(searchParams.get("jumps") || "1");
+  const maxJumps = Number.parseInt(searchParams.get("jumps") || "1", 10);
   const maxDaysStr = searchParams.get("days");
-  const maxDays = maxDaysStr ? parseInt(maxDaysStr) : null;
+  const maxDays = maxDaysStr ? Number.parseInt(maxDaysStr, 10) : null;
 
   const sQueryRaw = sourceRaw.toLowerCase().trim();
   const sourceInputs = sQueryRaw ? sQueryRaw.split(',').map(s => s.trim()).filter(s => s) : [];
@@ -56,8 +60,8 @@ export async function GET(request: Request) {
   }
 
   const startNodeSet = new Set(startNodes);
-  const results: any[] = [];
-  const queue: any[] = [];
+  const results: RouteSearchResult[] = [];
+  const queue: RouteSearchResult[] = [];
 
   startNodes.forEach(start => {
     queue.push({
@@ -65,6 +69,7 @@ export async function GET(request: Request) {
       target: start,
       nodes: [start],
       totalDays: 0,
+      stepDays: [],
       routes: []
     });
   });
@@ -75,8 +80,11 @@ export async function GET(request: Request) {
   while (queue.length > 0) {
     if (pathsFound >= MAX_PATHS_LIMIT) break;
 
-    const currentPath = queue.shift()!;
+    const currentPath = queue.shift();
+    if (!currentPath) continue;
+
     const currentNode = currentPath.nodes[currentPath.nodes.length - 1];
+    if (!currentNode) continue;
 
     if (currentPath.nodes.length > 1) {
       let isTargetMatch = true;
@@ -110,11 +118,11 @@ export async function GET(request: Request) {
         if (!currentPath.nodes.includes(nextTracker)) {
           const edgeDays = details.days;
           const forumReq = data.unlockInviteClass[currentNode];
-          const forumDays = forumReq ? forumReq[0] : 0;
+          const forumDays = forumReq?.[0] ?? 0;
           let stepDays: number | null = null;
           
           if (edgeDays !== null) {
-            stepDays = Math.max(edgeDays, forumDays || 0);
+            stepDays = Math.max(edgeDays, forumDays);
           }
 
           const nextTotalDays = (currentPath.totalDays === null || stepDays === null) ? null : currentPath.totalDays + stepDays;
@@ -126,6 +134,7 @@ export async function GET(request: Request) {
             target: nextTracker,
             nodes: [...currentPath.nodes, nextTracker],
             totalDays: nextTotalDays,
+            stepDays: [...currentPath.stepDays, stepDays],
             routes: [...currentPath.routes, details]
           });
         }

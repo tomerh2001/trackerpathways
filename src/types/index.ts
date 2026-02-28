@@ -1,12 +1,12 @@
 export interface RouteDetail {
-  days: number;
+  days: number | null;
   reqs: string;
   active: string;
   updated: string;
 }
 
 export type UnlockClass = [
-  number,
+  number | null,
   string
 ];
 
@@ -28,7 +28,8 @@ export interface PathResult {
   source: string;
   target: string;
   nodes: string[];
-  totalDays: number;
+  totalDays: number | null;
+  stepDays?: Array<number | null>;
   routes: RouteDetail[];
 }
 

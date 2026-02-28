@@ -17,10 +17,10 @@ export default function TrackerSearchApp() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>((searchParams.get("view") as 'grid' | 'list') || 'grid');
     
   const [maxJumps, setMaxJumps] = useState<number>(
-    searchParams.get("jumps") ? parseInt(searchParams.get("jumps")!) : 1
+    searchParams.get("jumps") ? Number.parseInt(searchParams.get("jumps")!, 10) : 1
   );
   const [maxDays, setMaxDays] = useState<number | null>(
-    searchParams.get("days") ? parseInt(searchParams.get("days")!) : null
+    searchParams.get("days") ? Number.parseInt(searchParams.get("days")!, 10) : null
   );
   const [sortBy, setSortBy] = useState<'days' | 'jumps'>((searchParams.get("sort") as 'days' | 'jumps') || 'jumps');
 
@@ -46,9 +46,24 @@ export default function TrackerSearchApp() {
 
   const [foundPaths, setFoundPaths] = useState<PathResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [myTrackers, setMyTrackers] = useState<string[]>([]);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const savedCollection = localStorage.getItem("tracker-collection") || "";
+      const trackers = savedCollection
+        .split(",")
+        .map((tracker) => tracker.trim())
+        .filter(Boolean);
+
+      setMyTrackers(trackers);
+    } catch (error) {
+      console.error("Failed to read tracker collection", error);
+    }
   }, []);
 
   useEffect(() => {
@@ -239,6 +254,34 @@ export default function TrackerSearchApp() {
     }
   };
 
+  const useMyTrackersAsSource = () => {
+    if (myTrackers.length === 0) {
+      return;
+    }
+
+    setSourceSearch(myTrackers.join(", "));
+    setShowSourceSug(false);
+    setSourceActiveIndex(-1);
+  };
+
+  const getPathId = (path: PathResult) => `${path.source}>${path.nodes.join(">")}`;
+
+  const getStepDays = (path: PathResult, routeIndex: number) => {
+    const stepDayFromApi = path.stepDays?.[routeIndex];
+    if (stepDayFromApi !== undefined) {
+      return stepDayFromApi;
+    }
+
+    const route = path.routes[routeIndex];
+    if (!route || route.days === null) {
+      return null;
+    }
+
+    const sourceNode = path.nodes[routeIndex];
+    const unlockDays = data.unlockInviteClass[sourceNode]?.[0] ?? 0;
+    return Math.max(route.days, unlockDays);
+  };
+
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase();
     if (s === 'yes' || s === 'open') return 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30';
@@ -277,10 +320,11 @@ export default function TrackerSearchApp() {
   const sortedPaths = useMemo(() => {
     return [...foundPaths].sort((a, b) => {
       if (sortBy === 'days') {
-        if (a.totalDays === null && b.totalDays !== null) return 1;
-        if (a.totalDays !== null && b.totalDays === null) return -1;
-        if (a.totalDays === null && b.totalDays === null) return 0;
-        return a.totalDays - b.totalDays;
+        const aTotalDays = a.totalDays ?? Number.POSITIVE_INFINITY;
+        const bTotalDays = b.totalDays ?? Number.POSITIVE_INFINITY;
+        if (aTotalDays !== bTotalDays) {
+          return aTotalDays - bTotalDays;
+        }
       }
         
       if (a.routes.length !== b.routes.length) {
@@ -290,6 +334,8 @@ export default function TrackerSearchApp() {
       return a.target.localeCompare(b.target);
     });
   }, [foundPaths, sortBy]);
+
+  const bestPathId = sortedPaths.length > 0 ? getPathId(sortedPaths[0]) : null;
 
   const groupedResults = useMemo(() => {
     const groups: { [key: string]: PathResult[] } = {};
@@ -365,6 +411,19 @@ export default function TrackerSearchApp() {
                     </div>
                   </div>
                 )}
+                <div className="mt-1 flex justify-end">
+                  <button
+                    onClick={useMyTrackersAsSource}
+                    disabled={myTrackers.length === 0}
+                    className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${
+                      myTrackers.length === 0
+                        ? "text-foreground/30 bg-foreground/5 cursor-not-allowed"
+                        : "text-foreground/70 bg-foreground/5 hover:bg-foreground/10"
+                    }`}
+                  >
+                    {myTrackers.length === 0 ? "No My Trackers saved" : `Use My Trackers (${myTrackers.length})`}
+                  </button>
+                </div>
               </div>
 
               <div className="h-px w-full bg-foreground/5 my-1"></div>
@@ -578,12 +637,21 @@ export default function TrackerSearchApp() {
                       ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                       : "grid grid-cols-1 gap-3"
                   }>
-                    {paths.map((path, idx) => {
+                    {paths.map((path) => {
                       const targetAbbr = getAbbr(path.target);
                       const isDirect = path.routes.length === 1;
+                      const pathId = getPathId(path);
+                      const isBestPath = pathId === bestPathId;
 
                       return (
-                        <div key={idx} className="group flex flex-col p-5 rounded-xl bg-card border border-foreground/10 transition-colors duration-200 h-full">
+                        <div
+                          key={pathId}
+                          className={`group flex flex-col p-5 rounded-xl border transition-colors duration-200 h-full ${
+                            isBestPath
+                              ? "border-green-500/40 bg-green-500/5"
+                              : "bg-card border-foreground/10"
+                          }`}
+                        >
                           
                           <div className="flex justify-between items-start mb-3 gap-4"> 
                             <div className="min-w-0">
@@ -592,6 +660,12 @@ export default function TrackerSearchApp() {
                                 <div className="font-bold text-foreground text-lg wrap-break-word">{path.target}</div>
                                 
                                 <div className="flex items-center gap-2 shrink-0">
+                                  {isBestPath && (
+                                    <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-md">
+                                      <span className="material-symbols-rounded text-sm">workspace_premium</span>
+                                      Best path
+                                    </span>
+                                  )}
                                   <span className={badgeClass}>
                                     {targetAbbr}
                                   </span>
@@ -619,6 +693,7 @@ export default function TrackerSearchApp() {
                             {path.routes.map((req, rIdx) => {
                               const fromNode = path.nodes[rIdx];
                               const toNode = path.nodes[rIdx + 1];
+                              const stepDays = getStepDays(path, rIdx);
                               
                               return (
                                 <div key={rIdx} className="text-sm pl-3 relative border-l-2 border-foreground/10">
@@ -627,6 +702,9 @@ export default function TrackerSearchApp() {
                                       <span>{fromNode}</span><span className="material-symbols-rounded text-base">arrow_right_alt</span><span>{toNode}</span>
                                     </div>
                                   )}
+                                  <div className={`text-xs font-medium mb-1 ${stepDays === null ? "text-foreground/40" : "text-foreground/60"}`}>
+                                    Step time: {stepDays === null ? "Unknown" : `${stepDays} days`}
+                                  </div>
                                   <p className="text-foreground/70 leading-relaxed font-normal text-sm">{renderReqs(req.reqs)}</p>
                                   
                                   <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-foreground/5 border-dashed">

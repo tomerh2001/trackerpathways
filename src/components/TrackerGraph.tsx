@@ -19,6 +19,14 @@ interface TrackerGraphProps {
   rawData: DataStructure;
 }
 
+interface CollectionPathOption {
+  id: string;
+  source: string;
+  nodes: string[];
+  totalDays: number | null;
+  stepDays: Array<number | null>;
+}
+
 export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
   const { resolvedTheme } = useTheme();
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -30,6 +38,9 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
   const [pathStart, setPathStart] = useState<string>("");
   const [pathEnd, setPathEnd] = useState<string>("");
   const [activePath, setActivePath] = useState<string[] | null>(null);
+  const [pathSortBy, setPathSortBy] = useState<"jumps" | "days">("jumps");
+  const [useCollectionAsSource, setUseCollectionAsSource] = useState(false);
+  const [selectedCollectionPathId, setSelectedCollectionPathId] = useState<string | null>(null);
 
   const [pathStartInput, setPathStartInput] = useState("");
   const [showPathStartSug, setShowPathStartSug] = useState(false);
@@ -88,6 +99,76 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
     return neighbors;
   }, [collectionNodes, data.links, rawData]);
 
+  const getCollectionPathId = (source: string, nodes: string[]) => `${source}>${nodes.join(">")}`;
+
+  const collectionPathOptions = useMemo<CollectionPathOption[]>(() => {
+    if (!useCollectionAsSource || !pathEnd || collectionNodes.length === 0) {
+      return [];
+    }
+
+    const timedPaths: CollectionPathOption[] = [];
+
+    for (const source of collectionNodes) {
+      if (source === pathEnd) {
+        continue;
+      }
+
+      const nodes = findShortestPath(rawData, source, pathEnd);
+      if (!nodes || nodes.length < 2) {
+        continue;
+      }
+
+      let totalDays: number | null = 0;
+      const stepDays: Array<number | null> = [];
+
+      for (let index = 0; index < nodes.length - 1; index += 1) {
+        const fromNode = nodes[index];
+        const toNode = nodes[index + 1];
+        const route = rawData.routeInfo[fromNode]?.[toNode];
+        const routeDays = route?.days;
+        const unlockDays = rawData.unlockInviteClass[fromNode]?.[0] ?? 0;
+
+        if (routeDays === null || routeDays === undefined) {
+          stepDays.push(null);
+          totalDays = null;
+          continue;
+        }
+
+        const stepTime = Math.max(routeDays, unlockDays);
+        stepDays.push(stepTime);
+        if (totalDays !== null) {
+          totalDays += stepTime;
+        }
+      }
+
+      timedPaths.push({
+        id: getCollectionPathId(source, nodes),
+        source,
+        nodes,
+        totalDays,
+        stepDays,
+      });
+    }
+
+    return timedPaths.sort((a, b) => {
+      if (pathSortBy === "days") {
+        if (a.totalDays === null && b.totalDays !== null) return 1;
+        if (a.totalDays !== null && b.totalDays === null) return -1;
+        if (a.totalDays !== null && b.totalDays !== null && a.totalDays !== b.totalDays) {
+          return a.totalDays - b.totalDays;
+        }
+      }
+
+      const hopsA = a.nodes.length - 1;
+      const hopsB = b.nodes.length - 1;
+      if (hopsA !== hopsB) {
+        return hopsA - hopsB;
+      }
+
+      return a.source.localeCompare(b.source);
+    });
+  }, [collectionNodes, pathEnd, pathSortBy, rawData, useCollectionAsSource]);
+
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -105,14 +186,58 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
   }, []);
 
   useEffect(() => {
+    if (useCollectionAsSource) {
+      setPathStart("");
+      setPathStartInput("");
+      setShowPathStartSug(false);
+      setPathStartActiveIndex(-1);
+    }
+  }, [useCollectionAsSource]);
+
+  useEffect(() => {
+    if (!useCollectionAsSource) {
+      return;
+    }
+
+    if (collectionPathOptions.length === 0) {
+      setSelectedCollectionPathId(null);
+      return;
+    }
+
+    if (
+      selectedCollectionPathId
+      && collectionPathOptions.some((path) => path.id === selectedCollectionPathId)
+    ) {
+      return;
+    }
+
+    setSelectedCollectionPathId(collectionPathOptions[0].id);
+  }, [collectionPathOptions, selectedCollectionPathId, useCollectionAsSource]);
+
+  useEffect(() => {
+    if (useCollectionAsSource) {
+      const selectedCollectionPath = collectionPathOptions.find((path) => path.id === selectedCollectionPathId);
+      setActivePath(selectedCollectionPath?.nodes || null);
+      setSelectedNodeId(null);
+      return;
+    }
+
     if (pathStart && pathEnd) {
       const path = findShortestPath(rawData, pathStart, pathEnd);
       setActivePath(path);
       setSelectedNodeId(null);
-    } else {
-      setActivePath(null);
+      return;
     }
-  }, [pathStart, pathEnd, rawData]);
+
+    setActivePath(null);
+  }, [
+    collectionPathOptions,
+    pathEnd,
+    pathStart,
+    rawData,
+    selectedCollectionPathId,
+    useCollectionAsSource,
+  ]);
 
   useEffect(() => {
     if (pathStartActiveIndex >= 0 && pathStartListRef.current) {
@@ -273,6 +398,13 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
     }
   };
 
+  const formatStepDays = (days: number | null) => (days === null ? "?" : `${days}d`);
+
+  const selectedCollectionPath = useMemo(
+    () => collectionPathOptions.find((path) => path.id === selectedCollectionPathId) || null,
+    [collectionPathOptions, selectedCollectionPathId]
+  );
+
   const isDark = resolvedTheme === "dark";
   const defaultNodeColor = isDark ? "#60a5fa" : "#2563eb";
   const dimColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
@@ -309,16 +441,77 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
 
           <div className={`transition-all duration-500 ease-in-out ${isPanelOpen ? "max-h-[500px] opacity-100 border-t border-foreground/10 overflow-visible" : "max-h-0 opacity-0 border-t-0 overflow-hidden"}`}>
             <div className="p-4 flex flex-col gap-4 min-w-[250px]">
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  onClick={() => setUseCollectionAsSource((current) => !current)}
+                  disabled={collectionNodes.length === 0}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                    useCollectionAsSource
+                      ? "bg-green-500/15 text-green-600 dark:text-green-300 border border-green-500/40"
+                      : "bg-foreground/5 text-foreground/70 border border-foreground/10"
+                  } ${
+                    collectionNodes.length === 0
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-foreground/10"
+                  }`}
+                >
+                  <span className="material-symbols-rounded text-sm">bookmarks</span>
+                  Use My Trackers
+                </button>
+
+                {useCollectionAsSource && (
+                  <div className="flex rounded-md bg-foreground/5 p-0.5">
+                    <button
+                      onClick={() => setPathSortBy("jumps")}
+                      className={`px-2 py-1 text-xs rounded-sm transition-colors ${
+                        pathSortBy === "jumps"
+                          ? "bg-foreground/10 text-foreground"
+                          : "text-foreground/60 hover:text-foreground"
+                      }`}
+                    >
+                      Jumps
+                    </button>
+                    <button
+                      onClick={() => setPathSortBy("days")}
+                      className={`px-2 py-1 text-xs rounded-sm transition-colors ${
+                        pathSortBy === "days"
+                          ? "bg-foreground/10 text-foreground"
+                          : "text-foreground/60 hover:text-foreground"
+                      }`}
+                    >
+                      Days
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {useCollectionAsSource && collectionNodes.length === 0 && (
+                <p className="text-xs text-foreground/50 leading-relaxed">
+                  Add trackers in the Collection panel to find routes from your current trackers.
+                </p>
+              )}
               
               <div className="flex flex-col gap-1.5 relative">
                 <label className="text-sm font-medium text-muted-foreground ml-1">Source Tracker</label>
                 <input
                   type="text"
-                  placeholder="Search starting tracker..."
-                  className="w-full bg-foreground/5 border border-foreground/10 rounded-md text-sm p-2.5 outline-none focus:border-green-500/50 transition-colors"
-                  value={pathStartInput}
-                  onFocus={() => setShowPathStartSug(true)}
+                  disabled={useCollectionAsSource}
+                  placeholder={useCollectionAsSource ? "Using My Trackers" : "Search starting tracker..."}
+                  className={`w-full bg-foreground/5 border border-foreground/10 rounded-md text-sm p-2.5 outline-none transition-colors ${
+                    useCollectionAsSource
+                      ? "cursor-not-allowed text-foreground/50"
+                      : "focus:border-green-500/50"
+                  }`}
+                  value={useCollectionAsSource ? collectionNodes.join(", ") : pathStartInput}
+                  onFocus={() => {
+                    if (!useCollectionAsSource) {
+                      setShowPathStartSug(true);
+                    }
+                  }}
                   onChange={(e) => {
+                    if (useCollectionAsSource) {
+                      return;
+                    }
                     setPathStartInput(e.target.value);
                     setPathStart(""); 
                     setShowPathStartSug(true);
@@ -326,8 +519,14 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                   }}
                   onKeyDown={handlePathStartKeyDown}
                 />
+
+                {useCollectionAsSource && (
+                  <span className="text-xs text-foreground/50 ml-1">
+                    Using {collectionNodes.length} tracker{collectionNodes.length === 1 ? "" : "s"} from collection.
+                  </span>
+                )}
                 
-                {showPathStartSug && getSuggestions(pathStartInput).length > 0 && (
+                {!useCollectionAsSource && showPathStartSug && getSuggestions(pathStartInput).length > 0 && (
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setShowPathStartSug(false)} />
                     <div className="absolute top-full left-0 w-full mt-1 bg-card border border-foreground/10 rounded-xl overflow-hidden z-40 max-h-40 overflow-y-auto p-1" ref={pathStartListRef}>
@@ -388,23 +587,81 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                 )}
               </div>
 
-              {pathStart && pathEnd && !activePath && (
+              {useCollectionAsSource && pathEnd && collectionPathOptions.length === 0 && (
+                <div className="text-sm text-red-500 font-medium text-center py-1">
+                  No path found from My Trackers
+                </div>
+              )}
+              {useCollectionAsSource && pathEnd && selectedCollectionPath && (
+                <div className="text-sm text-green-500 font-medium text-center py-1 flex items-center justify-center gap-1.5">
+                  <span className="material-symbols-rounded text-base">check_circle</span>
+                  Best route: {collectionPathOptions[0].source} ({collectionPathOptions[0].nodes.length - 1} steps)
+                </div>
+              )}
+              {!useCollectionAsSource && pathStart && pathEnd && !activePath && (
                 <div className="text-sm text-red-500 font-medium text-center py-1">
                   No path found
                 </div>
               )}
-              {pathStart && pathEnd && activePath && (
+              {!useCollectionAsSource && pathStart && pathEnd && activePath && (
                 <div className="text-sm text-green-500 font-medium text-center py-1 flex items-center justify-center gap-1.5">
                   <span className="material-symbols-rounded text-base">check_circle</span>
                   Path found ({activePath.length - 1} steps)
                 </div>
               )}
 
-              {(pathStart || pathEnd || pathStartInput || pathEndInput) && (
+              {useCollectionAsSource && pathEnd && collectionPathOptions.length > 0 && (
+                <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
+                  {collectionPathOptions.map((pathOption, index) => {
+                    const isSelected = selectedCollectionPathId === pathOption.id;
+
+                    return (
+                      <button
+                        key={pathOption.id}
+                        onClick={() => setSelectedCollectionPathId(pathOption.id)}
+                        className={`rounded-lg border p-2.5 text-left transition-colors ${
+                          isSelected
+                            ? "border-green-500/40 bg-green-500/10"
+                            : "border-foreground/10 bg-foreground/5 hover:bg-foreground/10"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1 text-xs mb-1">
+                          <span className="font-semibold text-foreground">{pathOption.source}</span>
+                          <span className="text-foreground/60">{pathOption.nodes.length - 1} hops</span>
+                          <span className={pathOption.totalDays === null ? "text-foreground/40" : "text-foreground/70"}>
+                            {pathOption.totalDays === null ? "Unknown" : `${pathOption.totalDays}d`}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-foreground/50 leading-relaxed">
+                          {pathOption.nodes.slice(0, -1).map((node, stepIndex) => (
+                            <span key={`${pathOption.id}-${node}-${stepIndex}`}>
+                              {stepIndex > 0 && " • "}
+                              {node}
+                              <span className="material-symbols-rounded align-middle text-[11px] mx-0.5">arrow_right_alt</span>
+                              {pathOption.nodes[stepIndex + 1]}
+                              {" ("}
+                              {formatStepDays(pathOption.stepDays[stepIndex] ?? null)}
+                              {")"}
+                            </span>
+                          ))}
+                        </div>
+                        {index === 0 && (
+                          <div className="mt-1 text-[11px] font-medium text-green-600/80 dark:text-green-300/80">
+                            Shortest by {pathSortBy === "days" ? "total time" : "hops"}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {(pathStart || pathEnd || pathStartInput || pathEndInput || useCollectionAsSource) && (
                 <button
                   onClick={() => { 
                     setPathStart(""); setPathEnd(""); 
                     setPathStartInput(""); setPathEndInput(""); 
+                    setSelectedCollectionPathId(null);
                   }}
                   className="text-sm text-muted-foreground hover:text-foreground underline decoration-dotted mt-1 self-center"
                 >
