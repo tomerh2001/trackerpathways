@@ -7,6 +7,19 @@ import { DataStructure, PathResult } from "@/types";
 
 const data = rawData as unknown as DataStructure;
 
+interface UnlockRequirementSection {
+  key: string;
+  rank: string;
+  requirements: string[];
+  requirementText: string;
+}
+
+interface UnlockRequirementsDialogState {
+  sourceName: string;
+  unlockDays: number | null;
+  sections: UnlockRequirementSection[];
+}
+
 export default function TrackerSearchApp() {
   const router = useRouter();
   const pathname = usePathname();
@@ -51,6 +64,7 @@ export default function TrackerSearchApp() {
 
   const [foundPaths, setFoundPaths] = useState<PathResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [unlockRequirementsDialog, setUnlockRequirementsDialog] = useState<UnlockRequirementsDialogState | null>(null);
   
   const [myTrackers, setMyTrackers] = useState<string[]>([]);
   const [collectionInput, setCollectionInput] = useState("");
@@ -198,6 +212,25 @@ export default function TrackerSearchApp() {
       }
     }
   }, [collectionActiveIndex]);
+
+  useEffect(() => {
+    if (!unlockRequirementsDialog) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setUnlockRequirementsDialog(null);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [unlockRequirementsDialog]);
 
   const getAbbr = (name: string) => {
     if (data.abbrList[name]) return data.abbrList[name];
@@ -770,6 +803,28 @@ export default function TrackerSearchApp() {
               const paths = groupedResults[sourceName];
               const sourceAbbr = getAbbr(sourceName);
               const unlockInfo = data.unlockInviteClass[sourceName];
+              const unlockRequirementSections: UnlockRequirementSection[] = unlockInfo
+                ? unlockInfo[1]
+                  .split(";")
+                  .map(part => part.trim())
+                  .filter(part => part.length > 0)
+                  .map((part, index) => {
+                    const colonIndex = part.indexOf(":");
+                    const rank = colonIndex >= 0 ? part.slice(0, colonIndex).trim() : "";
+                    const requirementText = colonIndex >= 0 ? part.slice(colonIndex + 1).trim() : part;
+                    const requirements = requirementText
+                      .split(",")
+                      .map(item => item.trim())
+                      .filter(item => item.length > 0);
+
+                    return {
+                      key: `${sourceName}-${index}`,
+                      rank,
+                      requirements,
+                      requirementText,
+                    };
+                  })
+                : [];
 
               return (
                 <div key={sourceName} className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -787,11 +842,25 @@ export default function TrackerSearchApp() {
                       </div>
 
                       {unlockInfo && (
-                        <div className="flex items-start gap-1.5 text-sm text-foreground/70 bg-foreground/5 px-2.5 py-1.5 rounded-md self-start w-fit max-w-full md:max-w-md">
-                          <span className="material-symbols-rounded text-sm shrink-0 mt-0.5">lock_open</span>
-                          <span className="leading-tight wrap-break-word">
-                             {unlockInfo[1]} {unlockInfo[0] !== null ? `(${unlockInfo[0]}d)` : ''}
-                          </span>
+                        <div className="w-fit max-w-full rounded-lg border border-foreground/10 bg-foreground/5 px-3 py-2.5">
+                          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                            <div className="min-w-0 flex items-center gap-1.5">
+                              <span className="material-symbols-rounded text-sm shrink-0 text-foreground/80">lock_open</span>
+                              <span className="font-medium text-sm text-foreground/80 truncate">Official invite forum unlock</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setUnlockRequirementsDialog({
+                                sourceName,
+                                unlockDays: unlockInfo[0],
+                                sections: unlockRequirementSections,
+                              })}
+                              className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground bg-background/50 border border-foreground/15 rounded-md px-2.5 py-1.5 hover:bg-background/80 transition-colors whitespace-nowrap shrink-0"
+                            >
+                              <span className="material-symbols-rounded text-base">visibility</span>
+                              View requirements{unlockRequirementSections.length > 0 ? ` (${unlockRequirementSections.length})` : ""}
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -903,6 +972,82 @@ export default function TrackerSearchApp() {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {unlockRequirementsDialog && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/55 backdrop-blur-sm p-0 md:p-4 flex items-end md:items-center justify-center"
+          onClick={() => setUnlockRequirementsDialog(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="official-invite-forum-dialog-title"
+            className="w-full md:max-w-2xl max-h-[82vh] md:max-h-[85vh] rounded-t-2xl md:rounded-xl border border-foreground/15 bg-card shadow-2xl overflow-hidden"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex justify-center pt-2 md:hidden">
+              <span className="h-1 w-10 rounded-full bg-foreground/20" />
+            </div>
+            <div className="flex items-start justify-between gap-4 p-4 border-b border-foreground/10">
+              <div>
+                <h2 id="official-invite-forum-dialog-title" className="text-lg font-bold text-foreground">
+                  {unlockRequirementsDialog.sourceName}
+                </h2>
+                <p className="text-sm text-foreground/70 mt-1">
+                  Requirements to unlock the official invite forum
+                </p>
+              </div>
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setUnlockRequirementsDialog(null)}
+                className="p-1.5 rounded-md text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors"
+                aria-label="Close dialog"
+              >
+                <span className="material-symbols-rounded text-lg">close</span>
+              </button>
+            </div>
+
+            <div className="p-4 pb-6 overflow-y-auto max-h-[calc(82vh-92px)] md:max-h-[calc(85vh-84px)] space-y-3 custom-scrollbar">
+              {unlockRequirementsDialog.unlockDays !== null && (
+                <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/75 bg-foreground/10 rounded-md px-2 py-1">
+                  <span className="material-symbols-rounded text-sm">schedule</span>
+                  Unlock after {unlockRequirementsDialog.unlockDays} days
+                </div>
+              )}
+
+              {unlockRequirementsDialog.sections.length > 0 ? (
+                <div className="space-y-2.5">
+                  {unlockRequirementsDialog.sections.map(section => (
+                    <div key={section.key} className="rounded-lg border border-foreground/10 bg-foreground/5 p-3">
+                      {section.rank ? (
+                        <h3 className="text-sm font-semibold text-foreground">{section.rank}</h3>
+                      ) : (
+                        <h3 className="text-sm font-semibold text-foreground">Requirements</h3>
+                      )}
+
+                      {section.requirements.length > 1 ? (
+                        <ul className="mt-2 space-y-1.5">
+                          {section.requirements.map((requirement, requirementIndex) => (
+                            <li key={`${section.key}-${requirementIndex}`} className="text-sm text-foreground/80 leading-snug flex items-start gap-2">
+                              <span className="mt-[7px] h-1 w-1 rounded-full bg-foreground/45 shrink-0" />
+                              <span className="break-words">{requirement}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-2 text-sm text-foreground/80 leading-snug break-words">{section.requirementText}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-foreground/70">No specific requirements were provided.</p>
+              )}
+            </div>
           </div>
         </div>
       )}
