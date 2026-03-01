@@ -94,7 +94,7 @@ export default function DirectoryPageClient() {
         <div className="flex flex-col items-center justify-center py-20 opacity-50 border-2 border-dashed border-foreground/10 rounded-xl">
           <span className="material-symbols-rounded text-6xl mb-4 text-foreground/20">search_off</span>
           <p className="text-foreground/50 font-medium">
-            No trackers found matching {search}
+            No trackers found matching &quot;{search}&quot;
           </p>
         </div>
       )}
