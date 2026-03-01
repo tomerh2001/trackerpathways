@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import rawData from "@/data/trackers.json";
 
-const TRACKERS_PAGE_SIZE = 40;
+const TRACKERS_PAGE_SIZE = 20;
 
 export default function DirectoryPageClient() {
   const [search, setSearch] = useState("");

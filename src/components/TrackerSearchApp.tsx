@@ -6,7 +6,7 @@ import rawData from "@/data/trackers.json";
 import { DataStructure, PathResult } from "@/types"; 
 
 const data = rawData as unknown as DataStructure;
-const PATHS_PAGE_SIZE = 24;
+const PATHS_PAGE_SIZE = 12;
 
 export default function TrackerSearchApp() {
   const router = useRouter();
