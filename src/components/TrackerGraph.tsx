@@ -439,20 +439,18 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
             )}
           </button>
 
-          <div className={`transition-all duration-500 ease-in-out ${isPanelOpen ? "max-h-[500px] opacity-100 border-t border-foreground/10 overflow-visible" : "max-h-0 opacity-0 border-t-0 overflow-hidden"}`}>
+          <div className={`transition-all duration-500 ease-in-out ${isPanelOpen ? "max-h-[800px] opacity-100 border-t border-foreground/10 overflow-visible" : "max-h-0 opacity-0 border-t-0 overflow-hidden"}`}>
             <div className="p-4 flex flex-col gap-4 min-w-[250px]">
               <div className="flex items-center justify-between gap-2">
                 <button
                   onClick={() => setUseCollectionAsSource((current) => !current)}
                   disabled={collectionNodes.length === 0}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
-                    useCollectionAsSource
-                      ? "bg-green-500/15 text-green-600 dark:text-green-300 border border-green-500/40"
-                      : "bg-foreground/5 text-foreground/70 border border-foreground/10"
-                  } ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors border ${
                     collectionNodes.length === 0
-                      ? "cursor-not-allowed opacity-50"
-                      : "hover:bg-foreground/10"
+                      ? "cursor-not-allowed opacity-50 bg-foreground/5 text-foreground/70 border-foreground/10"
+                      : useCollectionAsSource
+                        ? "bg-green-500/15 text-green-600 dark:text-green-300 border-green-500/40"
+                        : "bg-foreground/5 text-foreground/70 border-foreground/10 hover:bg-foreground/10 hover:text-foreground"
                   }`}
                 >
                   <span className="material-symbols-rounded text-sm">bookmarks</span>
@@ -460,10 +458,10 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                 </button>
 
                 {useCollectionAsSource && (
-                  <div className="flex rounded-md bg-foreground/5 p-0.5">
+                  <div className="grid grid-cols-2 w-[120px] shrink-0 rounded-md bg-foreground/5 p-0.5">
                     <button
                       onClick={() => setPathSortBy("jumps")}
-                      className={`px-2 py-1 text-xs rounded-sm transition-colors ${
+                      className={`text-center px-2 py-1 text-xs rounded-sm transition-colors ${
                         pathSortBy === "jumps"
                           ? "bg-foreground/10 text-foreground"
                           : "text-foreground/60 hover:text-foreground"
@@ -473,7 +471,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                     </button>
                     <button
                       onClick={() => setPathSortBy("days")}
-                      className={`px-2 py-1 text-xs rounded-sm transition-colors ${
+                      className={`text-center px-2 py-1 text-xs rounded-sm transition-colors ${
                         pathSortBy === "days"
                           ? "bg-foreground/10 text-foreground"
                           : "text-foreground/60 hover:text-foreground"
@@ -611,7 +609,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
               )}
 
               {useCollectionAsSource && pathEnd && collectionPathOptions.length > 0 && (
-                <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
+                <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
                   {collectionPathOptions.map((pathOption, index) => {
                     const isSelected = selectedCollectionPathId === pathOption.id;
 
@@ -619,10 +617,10 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
                       <button
                         key={pathOption.id}
                         onClick={() => setSelectedCollectionPathId(pathOption.id)}
-                        className={`rounded-lg border p-2.5 text-left transition-colors ${
+                        className={`shrink-0 rounded-lg border p-2.5 text-left transition-colors ${
                           isSelected
                             ? "border-green-500/40 bg-green-500/10"
-                            : "border-foreground/10 bg-foreground/5 hover:bg-foreground/10"
+                            : "border-foreground/10 bg-foreground/5"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-1 text-xs mb-1">
@@ -689,7 +687,7 @@ export default function TrackerGraph({ data, rawData }: TrackerGraphProps) {
             )}
           </button>
 
-          <div className={`transition-all duration-500 ease-in-out ${isCollectionPanelOpen ? "max-h-[500px] opacity-100 border-t border-foreground/10 overflow-visible" : "max-h-0 opacity-0 border-t-0 overflow-hidden"}`}>
+          <div className={`transition-all duration-500 ease-in-out ${isCollectionPanelOpen ? "max-h-[800px] opacity-100 border-t border-foreground/10 overflow-visible" : "max-h-0 opacity-0 border-t-0 overflow-hidden"}`}>
             <div className="p-4 flex flex-col gap-4 min-w-[250px]">
               <div className="flex flex-col gap-1.5 relative" ref={collectionWrapperRef}>
                 <label className="text-sm font-medium text-muted-foreground ml-1">My Trackers</label>

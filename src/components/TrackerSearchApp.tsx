@@ -25,18 +25,23 @@ export default function TrackerSearchApp() {
   const [sortBy, setSortBy] = useState<'days' | 'jumps'>((searchParams.get("sort") as 'days' | 'jumps') || 'jumps');
 
   const [showFilters, setShowFilters] = useState(false);
+  const [showCollectionManager, setShowCollectionManager] = useState(false);
 
   const [showSourceSug, setShowSourceSug] = useState(false);
   const [showTargetSug, setShowTargetSug] = useState(false);
+  const [showCollectionSug, setShowCollectionSug] = useState(false);
     
   const [sourceActiveIndex, setSourceActiveIndex] = useState(-1);
   const [targetActiveIndex, setTargetActiveIndex] = useState(-1);
+  const [collectionActiveIndex, setCollectionActiveIndex] = useState(-1);
 
   const sourceWrapperRef = useRef<HTMLDivElement>(null);
   const targetWrapperRef = useRef<HTMLDivElement>(null);
+  const collectionWrapperRef = useRef<HTMLDivElement>(null);
     
   const sourceListRef = useRef<HTMLDivElement>(null);
   const targetListRef = useRef<HTMLDivElement>(null);
+  const collectionListRef = useRef<HTMLDivElement>(null);
 
   const deferredSource = useDeferredValue(sourceSearch);
   const deferredTarget = useDeferredValue(targetSearch);
@@ -46,7 +51,11 @@ export default function TrackerSearchApp() {
 
   const [foundPaths, setFoundPaths] = useState<PathResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
   const [myTrackers, setMyTrackers] = useState<string[]>([]);
+  const [collectionInput, setCollectionInput] = useState("");
+
+  const isUsingCollection = myTrackers.length > 0 && sourceSearch === myTrackers.join(", ");
 
   useEffect(() => {
     setMounted(true);
@@ -133,6 +142,10 @@ export default function TrackerSearchApp() {
         setShowTargetSug(false);
         setTargetActiveIndex(-1);
       }
+      if (collectionWrapperRef.current && !collectionWrapperRef.current.contains(event.target as Node)) {
+        setShowCollectionSug(false);
+        setCollectionActiveIndex(-1);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -169,6 +182,22 @@ export default function TrackerSearchApp() {
       }
     }
   }, [targetActiveIndex]);
+
+  useEffect(() => {
+    if (collectionActiveIndex >= 0 && collectionListRef.current) {
+      const list = collectionListRef.current;
+      const activeElement = list.children[collectionActiveIndex] as HTMLElement;
+      if (activeElement) {
+        if (collectionActiveIndex === 0) {
+           list.scrollTop = 0;
+        } else if (collectionActiveIndex === list.children.length - 1) {
+           list.scrollTop = list.scrollHeight;
+        } else {
+           activeElement.scrollIntoView({ block: "nearest" });
+        }
+      }
+    }
+  }, [collectionActiveIndex]);
 
   const getAbbr = (name: string) => {
     if (data.abbrList[name]) return data.abbrList[name];
@@ -216,6 +245,23 @@ export default function TrackerSearchApp() {
     setTargetActiveIndex(-1);
   };
 
+  const handleCollectionSelect = (selectedItem: string) => {
+    if (!myTrackers.includes(selectedItem)) {
+      const updated = [...myTrackers, selectedItem];
+      setMyTrackers(updated);
+      localStorage.setItem("tracker-collection", updated.join(", "));
+    }
+    setCollectionInput("");
+    setShowCollectionSug(false);
+    setCollectionActiveIndex(-1);
+  };
+
+  const removeCollectionItem = (itemToRemove: string) => {
+    const updated = myTrackers.filter((item) => item !== itemToRemove);
+    setMyTrackers(updated);
+    localStorage.setItem("tracker-collection", updated.join(", "));
+  };
+
   const handleSourceKeyDown = (e: React.KeyboardEvent) => {
     if (!showSourceSug) return;
     const suggestions = getSuggestions(sourceSearch);
@@ -254,12 +300,32 @@ export default function TrackerSearchApp() {
     }
   };
 
-  const useMyTrackersAsSource = () => {
-    if (myTrackers.length === 0) {
-      return;
-    }
+  const handleCollectionKeyDown = (e: React.KeyboardEvent) => {
+    if (!showCollectionSug) return;
+    const suggestions = getSuggestions(collectionInput);
+    if (suggestions.length === 0) return;
 
-    setSourceSearch(myTrackers.join(", "));
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setCollectionActiveIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setCollectionActiveIndex(prev => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === "Enter" && collectionActiveIndex >= 0 && suggestions[collectionActiveIndex]) {
+      e.preventDefault();
+      handleCollectionSelect(suggestions[collectionActiveIndex]);
+    } else if (e.key === "Escape") {
+      setShowCollectionSug(false);
+    }
+  };
+
+  const toggleMyTrackers = () => {
+    if (myTrackers.length === 0) return;
+    if (isUsingCollection) {
+      setSourceSearch("");
+    } else {
+      setSourceSearch(myTrackers.join(", "));
+    }
     setShowSourceSug(false);
     setSourceActiveIndex(-1);
   };
@@ -319,23 +385,30 @@ export default function TrackerSearchApp() {
 
   const sortedPaths = useMemo(() => {
     return [...foundPaths].sort((a, b) => {
+      const aTotalDays = a.totalDays ?? Number.POSITIVE_INFINITY;
+      const bTotalDays = b.totalDays ?? Number.POSITIVE_INFINITY;
+
       if (sortBy === 'days') {
-        const aTotalDays = a.totalDays ?? Number.POSITIVE_INFINITY;
-        const bTotalDays = b.totalDays ?? Number.POSITIVE_INFINITY;
         if (aTotalDays !== bTotalDays) {
           return aTotalDays - bTotalDays;
         }
-      }
-        
-      if (a.routes.length !== b.routes.length) {
-        return a.routes.length - b.routes.length;
+        if (a.routes.length !== b.routes.length) {
+          return a.routes.length - b.routes.length;
+        }
+      } else {
+        if (a.routes.length !== b.routes.length) {
+          return a.routes.length - b.routes.length;
+        }
+        if (aTotalDays !== bTotalDays) {
+          return aTotalDays - bTotalDays;
+        }
       }
         
       return a.target.localeCompare(b.target);
     });
   }, [foundPaths, sortBy]);
 
-  const bestPathId = sortedPaths.length > 0 ? getPathId(sortedPaths[0]) : null;
+  const bestPathId = (deferredTarget && sortedPaths.length > 0) ? getPathId(sortedPaths[0]) : null;
 
   const groupedResults = useMemo(() => {
     const groups: { [key: string]: PathResult[] } = {};
@@ -377,21 +450,45 @@ export default function TrackerSearchApp() {
             <div className="flex flex-col gap-1 pl-9 pr-2 py-2">
               
               <div className="relative" ref={sourceWrapperRef}>
-                <input 
-                  aria-label="Source tracker"
-                  type="text"
-                  placeholder="Source tracker(s) (e.g. MAM, RED)"
-                  className="w-full h-10 bg-transparent border-none outline-none font-medium text-foreground placeholder:text-foreground/30 text-sm"
-                  value={sourceSearch}
-                  onFocus={() => setShowSourceSug(true)}
-                  onChange={(e) => {
-                    setSourceSearch(e.target.value);
-                    setShowSourceSug(true);
-                    setSourceActiveIndex(-1);
-                  }}
-                  onKeyDown={handleSourceKeyDown}
-                />
-                {showSourceSug && getSuggestions(sourceSearch).length > 0 && (
+                <div className="relative flex items-center w-full">
+                  <input 
+                    aria-label="Source tracker"
+                    type="text"
+                    disabled={isUsingCollection}
+                    placeholder={isUsingCollection ? "Using My Trackers" : "Source tracker(s) (e.g. MAM, RED)"}
+                    className={`w-full h-10 bg-transparent border-none outline-none font-medium text-sm pr-10 sm:pr-[150px] ${
+                      isUsingCollection ? "text-foreground/50 cursor-not-allowed" : "text-foreground placeholder:text-foreground/30"
+                    }`}
+                    value={sourceSearch}
+                    onFocus={() => {
+                      if (!isUsingCollection) setShowSourceSug(true);
+                    }}
+                    onChange={(e) => {
+                      if (isUsingCollection) return;
+                      setSourceSearch(e.target.value);
+                      setShowSourceSug(true);
+                      setSourceActiveIndex(-1);
+                    }}
+                    onKeyDown={handleSourceKeyDown}
+                  />
+                  <div className="absolute right-0 flex items-center pr-1">
+                    <button
+                      onClick={toggleMyTrackers}
+                      disabled={myTrackers.length === 0}
+                      className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-md transition-colors border ${
+                        myTrackers.length === 0
+                          ? "text-foreground/30 cursor-not-allowed bg-transparent border-transparent"
+                          : isUsingCollection
+                            ? "bg-green-500/15 text-green-600 dark:text-green-300 border-green-500/40"
+                            : "text-foreground/70 bg-foreground/5 hover:bg-foreground/10 hover:text-foreground border-transparent"
+                      }`}
+                    >
+                      <span className="material-symbols-rounded text-[14px]">bookmarks</span>
+                      <span className="hidden sm:inline">Use My Trackers</span>
+                    </button>
+                  </div>
+                </div>
+                {!isUsingCollection && showSourceSug && getSuggestions(sourceSearch).length > 0 && (
                   <div className="absolute top-full -left-8 w-[calc(100%+2rem)] mt-2 bg-card rounded-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100 border border-foreground/10">
                     <div className="max-h-60 overflow-y-auto p-1" ref={sourceListRef}>
                       {getSuggestions(sourceSearch).map((item, i) => (
@@ -411,19 +508,6 @@ export default function TrackerSearchApp() {
                     </div>
                   </div>
                 )}
-                <div className="mt-1 flex justify-end">
-                  <button
-                    onClick={useMyTrackersAsSource}
-                    disabled={myTrackers.length === 0}
-                    className={`text-xs font-medium px-2 py-1 rounded-md transition-colors ${
-                      myTrackers.length === 0
-                        ? "text-foreground/30 bg-foreground/5 cursor-not-allowed"
-                        : "text-foreground/70 bg-foreground/5 hover:bg-foreground/10"
-                    }`}
-                  >
-                    {myTrackers.length === 0 ? "No My Trackers saved" : `Use My Trackers (${myTrackers.length})`}
-                  </button>
-                </div>
               </div>
 
               <div className="h-px w-full bg-foreground/5 my-1"></div>
@@ -469,17 +553,37 @@ export default function TrackerSearchApp() {
 
             <div className="flex items-center justify-between mt-1 pt-1 px-2 pb-1">
               
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-all text-sm font-medium bg-foreground/5 ${
-                  showFilters 
-                    ? 'text-foreground' 
-                    : 'text-foreground/50 hover:text-foreground' 
-                }`}
-              >
-                <span className="material-symbols-rounded text-lg">tune</span>
-                <span>Options</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setShowFilters(!showFilters);
+                    if (showCollectionManager) setShowCollectionManager(false);
+                  }}
+                  className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-all text-sm font-medium bg-foreground/5 ${
+                    showFilters 
+                      ? 'text-foreground' 
+                      : 'text-foreground/50 hover:text-foreground' 
+                  }`}
+                >
+                  <span className="material-symbols-rounded text-lg">tune</span>
+                  <span>Options</span>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setShowCollectionManager(!showCollectionManager);
+                    if (showFilters) setShowFilters(false);
+                  }}
+                  className={`px-3 py-1.5 rounded-md flex items-center gap-2 transition-all text-sm font-medium bg-foreground/5 ${
+                    showCollectionManager 
+                      ? 'text-foreground' 
+                      : 'text-foreground/50 hover:text-foreground' 
+                  }`}
+                >
+                  <span className="material-symbols-rounded text-lg">collections_bookmark</span>
+                  <span className="hidden sm:inline">My Trackers</span>
+                </button>
+              </div>
 
               <div className="hidden md:flex items-center bg-foreground/5 rounded-md p-0.5">
                 <button
@@ -583,6 +687,67 @@ export default function TrackerSearchApp() {
           </div>
         )}
 
+        {showCollectionManager && (
+          <div className="max-w-2xl mx-auto mt-2 p-6 bg-foreground/3 border border-foreground/10 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex flex-col gap-4">
+              <div className="relative" ref={collectionWrapperRef}>
+                <label className="text-sm font-medium text-foreground/50 mb-2 block">Add to My Trackers</label>
+                <input 
+                  type="text"
+                  placeholder="Search tracker to add..."
+                  className="w-full h-10 bg-foreground/5 border border-foreground/10 rounded-md text-sm p-2.5 outline-none focus:border-purple-500/50 transition-colors"
+                  value={collectionInput}
+                  onFocus={() => setShowCollectionSug(true)}
+                  onChange={(e) => {
+                    setCollectionInput(e.target.value);
+                    setShowCollectionSug(true);
+                    setCollectionActiveIndex(-1);
+                  }}
+                  onKeyDown={handleCollectionKeyDown}
+                />
+                {showCollectionSug && getSuggestions(collectionInput).length > 0 && (
+                  <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100 border border-foreground/10">
+                    <div className="max-h-60 overflow-y-auto p-1" ref={collectionListRef}>
+                      {getSuggestions(collectionInput).map((item, i) => (
+                        <div 
+                          key={i}
+                          className={`px-3 py-2.5 rounded-md text-sm cursor-pointer transition-colors text-foreground/90 font-medium flex items-center justify-between ${
+                            i === collectionActiveIndex 
+                              ? 'bg-foreground/10' 
+                              : 'hover:bg-foreground/5'
+                          }`}
+                          onClick={() => handleCollectionSelect(item)}
+                        >
+                          <span>{item}</span>
+                          <span className="text-xs text-foreground/40 font-semibold">{getAbbr(item)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {myTrackers.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {myTrackers.map(t => (
+                    <button
+                      key={t}
+                      onClick={() => removeCollectionItem(t)}
+                      className="px-2.5 py-1 rounded-md text-sm font-medium bg-purple-500/10 hover:bg-red-500/10 text-purple-600 dark:text-purple-400 hover:text-red-600 dark:hover:text-red-400 border border-purple-500/20 hover:border-red-500/20 transition-colors cursor-pointer"
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-foreground/40 mt-1">
+                  Your collection is empty. Add trackers you are already in to easily use them as a source.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
 
       {(sourceSearch || targetSearch) && (
@@ -646,7 +811,7 @@ export default function TrackerSearchApp() {
                       return (
                         <div
                           key={pathId}
-                          className={`group flex flex-col p-5 rounded-xl border transition-colors duration-200 h-full ${
+                          className={`flex flex-col p-5 rounded-xl border transition-colors duration-200 h-full ${
                             isBestPath
                               ? "border-green-500/40 bg-green-500/5"
                               : "bg-card border-foreground/10"
@@ -663,7 +828,7 @@ export default function TrackerSearchApp() {
                                   {isBestPath && (
                                     <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-md">
                                       <span className="material-symbols-rounded text-sm">workspace_premium</span>
-                                      Best path
+                                      {sortBy === 'days' ? "Fastest route" : "Fewest hops"}
                                     </span>
                                   )}
                                   <span className={badgeClass}>
@@ -712,7 +877,7 @@ export default function TrackerSearchApp() {
                                       <span className={`text-sm font-semibold px-2 py-0.5 rounded-md ${getStatusColor(req.active)}`}>
                                         {getStatusLabel(req.active)}
                                       </span>
-                                      <div className="flex items-center gap-1 text-foreground/30" title="Last checked date">
+                                      <div className="flex items-center gap-1 text-foreground/30">
                                         <span className="text-xs font-medium">Last checked: {req.updated}</span>
                                       </div>
                                     </div>
