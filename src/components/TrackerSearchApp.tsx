@@ -6,6 +6,7 @@ import rawData from "@/data/trackers.json";
 import { DataStructure, PathResult } from "@/types"; 
 
 const data = rawData as unknown as DataStructure;
+const PATHS_PAGE_SIZE = 24;
 
 export default function TrackerSearchApp() {
   const router = useRouter();
@@ -56,6 +57,7 @@ export default function TrackerSearchApp() {
   const [collectionInput, setCollectionInput] = useState("");
 
   const isUsingCollection = myTrackers.length > 0 && sourceSearch === myTrackers.join(", ");
+  const [visiblePathsCount, setVisiblePathsCount] = useState(PATHS_PAGE_SIZE);
 
   useEffect(() => {
     setMounted(true);
@@ -129,6 +131,7 @@ export default function TrackerSearchApp() {
         setSourceSearch("");
         setTargetSearch("");
         setFoundPaths([]);
+        setVisiblePathsCount(PATHS_PAGE_SIZE);
       }
   }, [searchParams]);
 
@@ -235,12 +238,14 @@ export default function TrackerSearchApp() {
     terms.pop(); 
     terms.push(selectedItem); 
     setSourceSearch(terms.join(", ")); 
+    setVisiblePathsCount(PATHS_PAGE_SIZE);
     setShowSourceSug(false);
     setSourceActiveIndex(-1);
   };
 
   const handleTargetSelect = (selectedItem: string) => {
     setTargetSearch(selectedItem);
+    setVisiblePathsCount(PATHS_PAGE_SIZE);
     setShowTargetSug(false);
     setTargetActiveIndex(-1);
   };
@@ -326,6 +331,7 @@ export default function TrackerSearchApp() {
     } else {
       setSourceSearch(myTrackers.join(", "));
     }
+    setVisiblePathsCount(PATHS_PAGE_SIZE);
     setShowSourceSug(false);
     setSourceActiveIndex(-1);
   };
@@ -409,15 +415,18 @@ export default function TrackerSearchApp() {
   }, [foundPaths, sortBy]);
 
   const bestPathId = (deferredTarget && sortedPaths.length > 0) ? getPathId(sortedPaths[0]) : null;
+  const displayedPaths = useMemo(() => {
+    return sortedPaths.slice(0, visiblePathsCount);
+  }, [sortedPaths, visiblePathsCount]);
 
   const groupedResults = useMemo(() => {
     const groups: { [key: string]: PathResult[] } = {};
-    sortedPaths.forEach(path => {
+    displayedPaths.forEach(path => {
       if (!groups[path.source]) groups[path.source] = [];
       groups[path.source].push(path);
     });
     return groups;
-  }, [sortedPaths]);
+  }, [displayedPaths]);
 
 
   if (!mounted) return <div className="w-full" />;
@@ -466,6 +475,7 @@ export default function TrackerSearchApp() {
                     onChange={(e) => {
                       if (isUsingCollection) return;
                       setSourceSearch(e.target.value);
+                      setVisiblePathsCount(PATHS_PAGE_SIZE);
                       setShowSourceSug(true);
                       setSourceActiveIndex(-1);
                     }}
@@ -522,6 +532,7 @@ export default function TrackerSearchApp() {
                   onFocus={() => setShowTargetSug(true)}
                   onChange={(e) => {
                     setTargetSearch(e.target.value);
+                    setVisiblePathsCount(PATHS_PAGE_SIZE);
                     setShowTargetSug(true);
                     setTargetActiveIndex(-1);
                   }}
@@ -623,7 +634,10 @@ export default function TrackerSearchApp() {
                   {[1, 2, 3, 4, 5].map((val) => (
                     <button
                       key={val}
-                      onClick={() => setMaxJumps(val)}
+                      onClick={() => {
+                        setMaxJumps(val);
+                        setVisiblePathsCount(PATHS_PAGE_SIZE);
+                      }}
                       className={`flex-1 px-3 py-1.5 text-sm rounded-md transition-all ring-0 focus:ring-0 font-medium ${
                         maxJumps === val 
                           ? 'bg-foreground/10 text-foreground' 
@@ -648,7 +662,10 @@ export default function TrackerSearchApp() {
                   ].map((opt) => (
                     <button
                       key={opt.l}
-                      onClick={() => setMaxDays(opt.v)}
+                      onClick={() => {
+                        setMaxDays(opt.v);
+                        setVisiblePathsCount(PATHS_PAGE_SIZE);
+                      }}
                       className={`flex-1 px-2 py-1.5 text-sm rounded-md whitespace-nowrap transition-all ring-0 focus:ring-0 font-medium ${
                         maxDays === opt.v 
                           ? 'bg-foreground/10 text-foreground' 
@@ -670,7 +687,10 @@ export default function TrackerSearchApp() {
                   ].map((opt) => (
                     <button
                       key={opt.l}
-                      onClick={() => setSortBy(opt.v as 'days' | 'jumps')}
+                      onClick={() => {
+                        setSortBy(opt.v as 'days' | 'jumps');
+                        setVisiblePathsCount(PATHS_PAGE_SIZE);
+                      }}
                       className={`flex-1 px-3 py-1.5 text-sm rounded-md transition-all ring-0 focus:ring-0 font-medium ${
                         sortBy === opt.v 
                           ? 'bg-foreground/10 text-foreground' 
@@ -894,6 +914,18 @@ export default function TrackerSearchApp() {
                 </div>
               );
             })}
+
+            {!isStale && !isLoading && sortedPaths.length > visiblePathsCount && (
+              <div className="flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => setVisiblePathsCount(current => current + PATHS_PAGE_SIZE)}
+                  className="px-4 py-2 text-sm font-medium rounded-md bg-foreground/10 text-foreground/80 hover:bg-foreground/15 transition-colors"
+                >
+                  Load more ({Math.min(PATHS_PAGE_SIZE, sortedPaths.length - visiblePathsCount)} more)
+                </button>
+              </div>
+            )}
             
             {!isStale && !isLoading && foundPaths.length === 0 && (sourceSearch || targetSearch) && (
               <div className="flex flex-col items-center justify-center py-20 opacity-50 border-2 border-dashed border-foreground/10 rounded-lg">
