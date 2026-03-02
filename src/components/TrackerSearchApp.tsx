@@ -13,6 +13,7 @@ interface UnlockRequirementSection {
   rank: string;
   requirements: string[];
   requirementText: string;
+  ageText: string | null;
 }
 
 interface UnlockRequirementsDialogState {
@@ -825,6 +826,7 @@ export default function TrackerSearchApp() {
               const unlockInfo = data.unlockInviteClass[sourceName];
               const unlockRequirementSections: UnlockRequirementSection[] = unlockInfo
                 ? unlockInfo[1]
+                  .replace(/,?\s*or\s+([A-Za-z0-9_+\- ]+):/gi, "; $1:")
                   .split(";")
                   .map(part => part.trim())
                   .filter(part => part.length > 0)
@@ -832,16 +834,33 @@ export default function TrackerSearchApp() {
                     const colonIndex = part.indexOf(":");
                     const rank = colonIndex >= 0 ? part.slice(0, colonIndex).trim() : "";
                     const requirementText = colonIndex >= 0 ? part.slice(colonIndex + 1).trim() : part;
-                    const requirements = requirementText
+                    
+                    const rawRequirements = requirementText
                       .split(",")
                       .map(item => item.trim())
                       .filter(item => item.length > 0);
+
+                    let ageText = null;
+                    let updatedRequirementText = requirementText;
+                    
+                    const ageIndex = rawRequirements.findIndex(req => 
+                      /(?:year|month|week|day)s?|\b\d+d\b/i.test(req) && 
+                      !/(seedtime|seed size|seedsize|upload|ratio|adoptions|bp|torrents|seeds|bonus)/i.test(req)
+                    );
+
+                    const requirements = [...rawRequirements];
+                    if (ageIndex !== -1) {
+                      ageText = requirements[ageIndex];
+                      requirements.splice(ageIndex, 1);
+                      updatedRequirementText = requirements.join(", ");
+                    }
 
                     return {
                       key: `${sourceName}-${index}`,
                       rank,
                       requirements,
-                      requirementText,
+                      requirementText: updatedRequirementText,
+                      ageText,
                     };
                   })
                 : [];
@@ -1007,20 +1026,20 @@ export default function TrackerSearchApp() {
 
       {unlockRequirementsDialog && (
         <div
-          className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm p-0 md:p-4 flex items-end md:items-center justify-center"
+          className="fixed inset-0 z-50 h-[100dvh] w-screen bg-black/55 backdrop-blur-sm p-0 md:p-4 flex items-end md:items-center justify-center"
           onClick={() => setUnlockRequirementsDialog(null)}
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="official-invite-forum-dialog-title"
-            className="w-full md:max-w-2xl max-h-[82vh] md:max-h-[85vh] rounded-t-2xl md:rounded-xl border border-foreground/15 bg-card shadow-2xl overflow-hidden"
+            className="w-full md:max-w-2xl max-h-[82dvh] md:max-h-[85dvh] rounded-t-2xl md:rounded-xl border border-foreground/15 bg-card shadow-2xl overflow-hidden mt-auto md:mt-0 flex flex-col overscroll-none"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex justify-center pt-2 md:hidden">
+            <div className="flex justify-center pt-2 md:hidden shrink-0">
               <span className="h-1 w-10 rounded-full bg-foreground/20" />
             </div>
-            <div className="flex items-start justify-between gap-4 p-4 border-b border-foreground/10">
+            <div className="flex items-start justify-between gap-4 p-4 border-b border-foreground/10 shrink-0">
               <div>
                 <h2 id="official-invite-forum-dialog-title" className="text-lg font-bold text-foreground">
                   {unlockRequirementsDialog.sourceName}
@@ -1040,36 +1059,47 @@ export default function TrackerSearchApp() {
               </button>
             </div>
 
-            <div className="p-4 pb-6 overflow-y-auto max-h-[calc(82vh-92px)] md:max-h-[calc(85vh-84px)] space-y-3 custom-scrollbar">
-              {unlockRequirementsDialog.unlockDays !== null && (
-                <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/75 bg-foreground/10 rounded-md px-2 py-1">
-                  <span className="material-symbols-rounded text-sm">schedule</span>
-                  Unlock after {unlockRequirementsDialog.unlockDays} days
-                </div>
-              )}
-
+            <div className="p-4 pb-6 overflow-y-auto overscroll-contain space-y-3 custom-scrollbar flex-1 min-h-0">
               {unlockRequirementsDialog.sections.length > 0 ? (
                 <div className="space-y-2.5">
-                  {unlockRequirementsDialog.sections.map(section => (
-                    <div key={section.key} className="rounded-lg border border-foreground/10 bg-foreground/5 p-3">
-                      {section.rank ? (
-                        <h3 className="text-sm font-semibold text-foreground">{section.rank}</h3>
-                      ) : (
-                        <h3 className="text-sm font-semibold text-foreground">Requirements</h3>
+                  {unlockRequirementsDialog.sections.map((section, sectionIndex) => (
+                    <div key={section.key}>
+                      {sectionIndex > 0 && (
+                        <div className="flex items-center justify-center my-2">
+                          <span className="text-xs font-semibold text-foreground/40 uppercase">or</span>
+                        </div>
                       )}
+                      <div className="rounded-lg border border-foreground/10 bg-foreground/5 p-3">
+                        <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
+                          {section.rank ? (
+                            <h3 className="text-sm font-semibold text-foreground">{section.rank}</h3>
+                          ) : (
+                            <h3 className="text-sm font-semibold text-foreground">Requirements</h3>
+                          )}
 
-                      {section.requirements.length > 1 ? (
-                        <ul className="mt-2 space-y-1.5">
-                          {section.requirements.map((requirement, requirementIndex) => (
-                            <li key={`${section.key}-${requirementIndex}`} className="text-sm text-foreground/80 leading-snug flex items-start gap-2">
-                              <span className="mt-[7px] h-1 w-1 rounded-full bg-foreground/45 shrink-0" />
-                              <span className="wrap-break-words">{requirement}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="mt-2 text-sm text-foreground/80 leading-snug wrap-break-words">{section.requirementText}</p>
-                      )}
+                          {section.ageText && (
+                            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground/75 bg-foreground/10 rounded-md px-1.5 py-0.5 shrink-0">
+                              <span className="material-symbols-rounded text-[13px]">schedule</span>
+                              Unlock after {section.ageText.trim()}
+                            </div>
+                          )}
+                        </div>
+
+                        {section.requirements.length > 0 ? (
+                          <ul className="space-y-1.5">
+                            {section.requirements.map((requirement, requirementIndex) => (
+                              <li key={`${section.key}-${requirementIndex}`} className="text-sm text-foreground/80 leading-snug flex items-start gap-2">
+                                <span className="mt-[7px] h-1 w-1 rounded-full bg-foreground/45 shrink-0" />
+                                <span className="wrap-break-words">{requirement}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-foreground/80 leading-snug wrap-break-words">
+                            {section.requirementText || "No additional requirements."}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
