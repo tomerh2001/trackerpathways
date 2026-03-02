@@ -469,7 +469,7 @@ export default function TrackerSearchApp() {
 
   return (
     <>
-      <div className={`w-full transition-all duration-500 ease-out ${sourceSearch || targetSearch ? 'translate-y-0' : 'translate-y-4 md:translate-y-16'}`}>
+      <div className={`w-full relative z-40 transition-all duration-500 ease-out ${sourceSearch || targetSearch ? 'translate-y-0' : 'translate-y-4 md:translate-y-16'}`}>
         {!sourceSearch && !targetSearch && (
           <div className="text-center mb-10 space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-5xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
