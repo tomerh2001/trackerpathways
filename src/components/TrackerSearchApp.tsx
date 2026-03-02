@@ -930,26 +930,30 @@ export default function TrackerSearchApp() {
                                 <div className="font-bold text-foreground text-lg wrap-break-word">{path.target}</div>
                                 
                                 <div className="flex items-center gap-2 shrink-0">
-                                  {isBestPath && (
-                                    <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-md">
-                                      <span className="material-symbols-rounded text-sm">workspace_premium</span>
-                                      {sortBy === 'days' ? "Fastest route" : "Fewest hops"}
-                                    </span>
-                                  )}
                                   <span className={badgeClass}>
                                     {targetAbbr}
                                   </span>
-
                                   {!isDirect && <span className={badgeClass}>{path.routes.length} hop</span>}
                                 </div>
                               </div>
                               
-                              <div className="text-sm font-medium text-foreground/50 tracking-wide flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                                <span>From</span>
-                                <span className="text-foreground/80 font-medium">{sourceName}</span>
-                                <span className={badgeClass}>
-                                  {sourceAbbr}
-                                </span>
+                              <div className="flex flex-col gap-1.5 items-start">
+                                <div className="text-sm font-medium text-foreground/50 tracking-wide flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                                  <span>From</span>
+                                  <span className="text-foreground/80 font-medium">{sourceName}</span>
+                                  <span className={badgeClass}>
+                                    {sourceAbbr}
+                                  </span>
+                                </div>
+
+                                {isBestPath && (
+                                  <div className="mt-1.5">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-md">
+                                      <span className="material-symbols-rounded text-sm">workspace_premium</span>
+                                      {sortBy === 'days' ? "Fastest route" : "Fewest hops"}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                               
                             </div>
@@ -968,22 +972,22 @@ export default function TrackerSearchApp() {
                               return (
                                 <div key={rIdx} className="text-sm pl-3 relative border-l-2 border-foreground/10">
                                   {!isDirect && (
-                                    <div className="text-sm font-semibold text-foreground/40 mb-1 flex items-center gap-1">
+                                    <div className="text-sm font-bold text-foreground/70 mb-1 flex items-center gap-1">
                                       <span>{fromNode}</span><span className="material-symbols-rounded text-base">arrow_right_alt</span><span>{toNode}</span>
                                     </div>
                                   )}
-                                  <div className={`text-xs font-medium mb-1 ${stepDays === null ? "text-foreground/40" : "text-foreground/60"}`}>
+                                  <div className={`text-xs font-medium mb-1 ${stepDays === null ? "text-foreground/40" : "text-foreground/70"}`}>
                                     Step time: {stepDays === null ? "Unknown" : `${stepDays} days`}
                                   </div>
                                   <p className="text-foreground/70 leading-relaxed font-normal text-sm">{renderReqs(req.reqs)}</p>
                                   
                                   <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-foreground/5 border-dashed">
                                     <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
-                                      <span className={`text-sm font-semibold px-2 py-0.5 rounded-md ${getStatusColor(req.active)}`}>
+                                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${getStatusColor(req.active)}`}>
                                         {getStatusLabel(req.active)}
                                       </span>
                                       <div className="flex items-center gap-1 text-foreground/30">
-                                        <span className="text-xs font-medium">Last checked: {req.updated}</span>
+                                        <span className="text-xs font-medium">Checked: {req.updated}</span>
                                       </div>
                                     </div>
                                   </div>
