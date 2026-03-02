@@ -111,7 +111,6 @@
     "PixelCove": "PxC",
     "PixelHD": "PxHD",
     "PolishTorrent": "PTT",
-    "PornBay": "PB",
     "Portugas": "PTS",
     "PreToMe": "PTM",
     "PrivateHD": "PHD",
@@ -454,7 +453,6 @@
       "MoreThanTV": { "days": 180, "reqs": "Great Perv+, ratio>1.5, 6 months", "active": "Yes", "updated": "Mar 2025" },
       "Orpheus": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Mar 2025" },
       "PixelCove": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Mar 2025" },
-      "PornBay": { "days": 180, "reqs": "Great Perv+, 6 months", "active": "Yes", "updated": "Mar 2025" },
       "ReelFliX": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Mar 2025" },
       "SugoiMusic": { "days": 0, "reqs": "Great Perv+", "active": "Yes", "updated": "Mar 2025" },
       "Unwalled": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Mar 2025" }
@@ -641,7 +639,6 @@
       "Orpheus": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Sep 2025" },
       "PassThePopcorn": { "days": 730, "reqs": "Engineer+, 2 years", "active": "Yes", "updated": "Sep 2025" },
       "PixelCove": { "days": 0, "reqs": "No requirement", "active": "Unknown", "updated": "Sep 2025" },
-      "PornBay": { "days": 180, "reqs": "6 months", "active": "Yes", "updated": "Sep 2025" },
       "Portugas": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Sep 2025" },
       "TeamHD": { "days": 0, "reqs": "No requirement", "active": "No", "updated": "Sep 2025" },
       "Upload.cx": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Sep 2025" }
@@ -752,10 +749,6 @@
       "TheEmpire": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Nov 2024" },
       "TheGeeks": { "days": 0, "reqs": "2-3x full tracker profile screenshots (including PTP)", "active": "Yes", "updated": "Nov 2024" },
       "TLFBits": { "days": 90, "reqs": "3 months", "active": "Yes", "updated": "Nov 2024" }
-    },
-    "PornBay": {
-      "Empornium": { "days": 180, "reqs": "Expert User+, 6 months, no warnings", "active": "Unknown", "updated": "Nov 2025" },
-      "MoreThanTV": { "days": 180, "reqs": "Expert User+, 6 months, no warnings", "active": "Unknown", "updated": "Nov 2025" }
     },
     "PrivateHD": {
       "AvistaZ": { "days": 120, "reqs": "10k bp, Member Rank, 4 months, seeding 5 torrents, ratio>2.0, 300 GB", "active": "Yes", "updated": "Apr 2024" },
