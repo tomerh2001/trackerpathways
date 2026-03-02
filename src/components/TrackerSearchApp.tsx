@@ -498,7 +498,7 @@ export default function TrackerSearchApp() {
                     aria-label="Source tracker"
                     type="text"
                     disabled={isUsingCollection}
-                    placeholder={isUsingCollection ? "Using My Trackers" : "Source tracker(s) (e.g. MAM, RED)"}
+                    placeholder={isUsingCollection ? "Using My Trackers" : "Source tracker(s)"}
                     className={`w-full h-10 bg-transparent border-none outline-none font-medium text-sm pr-10 sm:pr-[150px] ${
                       isUsingCollection ? "text-foreground/50 cursor-not-allowed" : "text-foreground placeholder:text-foreground/30"
                     }`}
@@ -611,7 +611,7 @@ export default function TrackerSearchApp() {
                   }`}
                 >
                   <span className="material-symbols-rounded text-lg">tune</span>
-                  <span>Options</span>
+                  <span className="hidden sm:inline">Options</span>
                 </button>
                 
                 <button
@@ -1026,7 +1026,7 @@ export default function TrackerSearchApp() {
 
       {unlockRequirementsDialog && (
         <div
-          className="fixed inset-0 z-50 h-[100dvh] w-screen bg-black/55 backdrop-blur-sm p-0 md:p-4 flex items-end md:items-center justify-center"
+          className="fixed inset-0 z-50 h-dvh w-screen bg-black/55 backdrop-blur-sm p-0 md:p-4 flex items-end md:items-center justify-center"
           onClick={() => setUnlockRequirementsDialog(null)}
         >
           <div
