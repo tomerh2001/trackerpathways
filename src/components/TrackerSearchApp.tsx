@@ -480,7 +480,7 @@ export default function TrackerSearchApp() {
           </div>
         )}
 
-        <div className="w-full max-w-2xl mx-auto bg-foreground/3 border border-foreground/10 rounded-xl p-2 animate-in fade-in zoom-in-95 duration-500">
+        <div className="w-full max-w-2xl mx-auto bg-foreground/3 border border-foreground/10 rounded-xl p-2 animate-in fade-in zoom-in-95 duration-500 relative z-30">
           <div className="flex flex-col relative">
               
             <div className="absolute left-4 top-4 bottom-14 flex flex-col items-center gap-1 z-0 pointer-events-none">
@@ -741,7 +741,7 @@ export default function TrackerSearchApp() {
         )}
 
         {showCollectionManager && (
-          <div className="max-w-2xl mx-auto mt-2 p-6 bg-foreground/3 border border-foreground/10 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className={`max-w-2xl mx-auto mt-2 p-6 bg-foreground/3 border border-foreground/10 rounded-xl animate-in fade-in slide-in-from-top-2 duration-200 relative z-20 transition-all ${showCollectionSug ? 'mb-40' : ''}`}>
             <div className="flex flex-col gap-4">
               <div className="relative" ref={collectionWrapperRef}>
                 <label className="text-sm font-medium text-foreground/50 mb-2 block">Add to My Trackers</label>
