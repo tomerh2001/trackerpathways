@@ -862,24 +862,23 @@ export default function TrackerSearchApp() {
                       </div>
 
                       {unlockInfo && (
-                        <div className="flex items-center justify-between gap-3 text-sm text-foreground/70 bg-foreground/5 border border-foreground/10 px-2.5 py-1.5 rounded-md self-start w-fit max-w-full md:max-w-md">
+                        <button
+                          type="button"
+                          onClick={() => setUnlockRequirementsDialog({
+                            sourceName,
+                            unlockDays: unlockInfo[0],
+                            sections: unlockRequirementSections,
+                          })}
+                          className="flex items-center justify-between gap-3 text-sm text-foreground/70 hover:text-foreground bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 px-2.5 py-1.5 rounded-md transition-colors self-start w-fit max-w-full md:max-w-md text-left cursor-pointer group"
+                        >
                           <div className="flex items-center gap-1.5 min-w-0">
                             <span className="material-symbols-rounded text-sm shrink-0">lock_open</span>
                             <span className="leading-tight truncate">Official invite forum unlock</span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => setUnlockRequirementsDialog({
-                              sourceName,
-                              unlockDays: unlockInfo[0],
-                              sections: unlockRequirementSections,
-                            })}
-                            className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-foreground bg-background/50 border border-foreground/15 rounded px-2 md:px-2.5 py-1 hover:bg-background/80 transition-colors whitespace-nowrap shrink-0"
-                          >
-                            <span className="material-symbols-rounded text-[15px]">visibility</span>
-                            <span className="hidden md:inline">View requirements</span>
-                          </button>
-                        </div>
+                          <div className="flex items-center text-foreground/40 group-hover:text-foreground/70 transition-colors shrink-0">
+                            <span className="material-symbols-rounded text-base">chevron_right</span>
+                          </div>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -1034,7 +1033,7 @@ export default function TrackerSearchApp() {
                 type="button"
                 autoFocus
                 onClick={() => setUnlockRequirementsDialog(null)}
-                className="p-1.5 rounded-md text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors"
+                className="p-1.5 rounded-md text-foreground/70 transition-colors"
                 aria-label="Close dialog"
               >
                 <span className="material-symbols-rounded text-lg">close</span>
