@@ -107,7 +107,6 @@
     "OurBits": "OB",
     "ParabellumHD": "PBH",
     "PassThePopcorn": "PTP",
-    "Pedro's BTMusic": "xbtmusic.org",
     "Phoenix Project": "PHX",
     "PixelCove": "PxC",
     "PixelHD": "PxHD",
@@ -353,7 +352,6 @@
       "TheVault": { "days": 180, "reqs": "6 months", "active": "Unknown", "updated": "Nov 2024" }
     },
     "Bit-HDTV": {
-      "Aither": { "days": 0, "reqs": "Screenshot", "active": "Unknown", "updated": "Oct 2025" },
       "PTerClub": { "days": 180, "reqs": "Elite, 6months", "active": "Yes", "updated": "Oct 2025" },
       "seedpool": { "days": 0, "reqs": "500 GB seed size", "active": "Yes", "updated": "Oct 2025" },
       "SpeedApp": { "days": 0, "reqs": "Screenshot", "active": "No", "updated": "Oct 2025" }
@@ -571,7 +569,6 @@
       "Orpheus": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Nov 2024" },
       "OurBits": { "days": 0, "reqs": "No requirement", "active": "No", "updated": "Nov 2024" },
       "PassThePopcorn": { "days": 730, "reqs": "1080p, 2 years", "active": "Yes", "updated": "Nov 2024" },
-      "Pedro's BTMusic": { "days": 1825, "reqs": "1080p, 5 years, average seeding time of 2 years, not from a blacklisted country https://xbtmusic.org/public/blacklist.txt", "active": "Yes", "updated": "Nov 2024" },
       "PixelHD": { "days": 180, "reqs": "3x 6 months old profile links (including HDBits)", "active": "Yes", "updated": "Nov 2024" },
       "TeamHD": { "days": 0, "reqs": "No requirement", "active": "Yes", "updated": "Nov 2024" },
       "TheGeeks": { "days": 0, "reqs": "2-3x full tracker profile screenshots (including HDB)", "active": "Yes", "updated": "Nov 2024" },
