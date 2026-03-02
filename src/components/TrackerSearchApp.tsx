@@ -32,7 +32,7 @@ export default function TrackerSearchApp() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>((searchParams.get("view") as 'grid' | 'list') || 'grid');
     
   const [maxJumps, setMaxJumps] = useState<number>(
-    searchParams.get("jumps") ? Number.parseInt(searchParams.get("jumps")!, 10) : 1
+    searchParams.get("jumps") ? Number.parseInt(searchParams.get("jumps")!, 10) : 5
   );
   const [maxDays, setMaxDays] = useState<number | null>(
     searchParams.get("days") ? Number.parseInt(searchParams.get("days")!, 10) : null
@@ -99,7 +99,7 @@ export default function TrackerSearchApp() {
     if (deferredSource) params.set("source", deferredSource);
     if (deferredTarget) params.set("target", deferredTarget);
     if (viewMode !== 'grid') params.set("view", viewMode);
-    if (maxJumps !== 1) params.set("jumps", maxJumps.toString());
+    if (maxJumps !== 5) params.set("jumps", maxJumps.toString());
     if (maxDays !== null) params.set("days", maxDays.toString());
     if (sortBy !== 'jumps') params.set("sort", sortBy);
 
