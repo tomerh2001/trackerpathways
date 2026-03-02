@@ -1078,8 +1078,8 @@ export default function TrackerSearchApp() {
                           )}
 
                           {section.ageText && (
-                            <div className="inline-flex items-start gap-1 text-[11px] font-semibold text-foreground/75 bg-foreground/10 rounded-md px-1.5 py-1 shrink-0 max-w-full">
-                              <span className="material-symbols-rounded text-[13px] shrink-0 mt-px">schedule</span>
+                            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground/75 bg-foreground/10 rounded-md px-1.5 py-1 shrink-0 max-w-full">
+                              <span className="material-symbols-rounded text-[13px] shrink-0">schedule</span>
                               <span className="wrap-break-words text-left leading-tight">
                                 Unlock after {section.ageText.trim()}
                               </span>
