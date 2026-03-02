@@ -862,14 +862,10 @@ export default function TrackerSearchApp() {
                       </div>
 
                       {unlockInfo && (
-                        <div className={`flex items-center justify-between gap-3 text-sm text-foreground/70 bg-foreground/5 px-2.5 py-1.5 rounded-md self-start w-full ${
-                          viewMode === 'grid' ? 'md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333333%-0.666667rem)] xl:w-[calc(25%-0.75rem)]' : 'md:max-w-md'
-                        }`}>
+                        <div className="flex items-center justify-between gap-3 text-sm text-foreground/70 bg-foreground/5 border border-foreground/10 px-2.5 py-1.5 rounded-md self-start w-fit max-w-full md:max-w-md">
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="material-symbols-rounded text-sm shrink-0 mt-0.5">lock_open</span>
-                            <span className="leading-tight truncate">
-                              Official invite forum
-                            </span>
+                            <span className="material-symbols-rounded text-sm shrink-0">lock_open</span>
+                            <span className="leading-tight truncate">Official invite forum unlock</span>
                           </div>
                           <button
                             type="button"
