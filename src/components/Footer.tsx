@@ -2,6 +2,8 @@
 
 import { usePathname } from "next/navigation";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 export default function Footer() {
   const pathname = usePathname();
 
@@ -24,8 +26,8 @@ export default function Footer() {
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 hover:text-foreground transition-colors"
         >
-          <img src="/github-light.svg" alt="GitHub" className="w-3.5 h-3.5 block dark:hidden opacity-80" />
-          <img src="/github-dark.svg" alt="GitHub" className="w-3.5 h-3.5 hidden dark:block opacity-80" />
+          <img src={`${basePath}/github-light.svg`} alt="GitHub" className="w-3.5 h-3.5 block dark:hidden opacity-80" />
+          <img src={`${basePath}/github-dark.svg`} alt="GitHub" className="w-3.5 h-3.5 hidden dark:block opacity-80" />
           <span>GitHub</span>
         </a>
       </div>

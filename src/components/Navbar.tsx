@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -25,12 +27,12 @@ export default function Navbar() {
         >
           <div className="relative w-8 h-8 transition-transform group-hover:scale-105">
             <img 
-              src="/logo-light.svg" 
+              src={`${basePath}/logo-light.svg`} 
               alt="Logo" 
               className="absolute inset-0 w-full h-full object-contain dark:hidden" 
             />
             <img 
-              src="/logo-dark.svg" 
+              src={`${basePath}/logo-dark.svg`} 
               alt="Logo" 
               className="absolute inset-0 w-full h-full object-contain hidden dark:block" 
             />

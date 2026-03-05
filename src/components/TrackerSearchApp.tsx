@@ -4,9 +4,11 @@ import { useState, useMemo, useEffect, useDeferredValue, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import rawData from "@/data/trackers.json"; 
 import { DataStructure, PathResult, RouteDetail } from "@/types"; 
+import { searchRoutes } from "@/lib/routeSearch";
 
 const data = rawData as unknown as DataStructure;
 const PATHS_PAGE_SIZE = 12;
+const isClientRouteSearchEnabled = process.env.NEXT_PUBLIC_USE_CLIENT_ROUTE_SEARCH === "true";
 
 interface UnlockRequirementSection {
   key: string;
@@ -139,18 +141,46 @@ export default function TrackerSearchApp() {
     if (trackerParam) params.set("tracker", trackerParam);
 
     const nextQuery = params.toString();
+    if (isClientRouteSearchEnabled) {
+      const currentPathname = window.location.pathname;
+      const nextUrl = nextQuery ? `${currentPathname}?${nextQuery}` : currentPathname;
+      const currentUrl = `${currentPathname}${window.location.search}`;
+
+      if (nextUrl !== currentUrl) {
+        window.history.replaceState(window.history.state, "", nextUrl);
+      }
+
+      return;
+    }
+
     router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
   }, [deferredSource, deferredTarget, viewMode, maxJumps, maxDays, sortBy, sortDirection, mounted, pathname, router]);
 
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchPaths = async () => {
       if (!deferredSource && !deferredTarget) {
         setFoundPaths([]);
+        setIsLoading(false);
         return;
       }
 
       setIsLoading(true);
       try {
+        if (isClientRouteSearchEnabled) {
+          const nextPaths = searchRoutes(data, {
+            sourceRaw: deferredSource,
+            targetRaw: deferredTarget,
+            maxJumps,
+            maxDays,
+          });
+          if (!isCancelled) {
+            setFoundPaths(nextPaths);
+          }
+          return;
+        }
+
         const params = new URLSearchParams();
         if (deferredSource) params.append("source", deferredSource);
         if (deferredTarget) params.append("target", deferredTarget);
@@ -159,13 +189,25 @@ export default function TrackerSearchApp() {
 
         const res = await fetch(`/api/routes?${params.toString()}`);
         if (res.ok) {
-          const data = await res.json();
-          setFoundPaths(data);
+          const apiData = await res.json();
+          if (!isCancelled) {
+            setFoundPaths(apiData);
+          }
+          return;
+        }
+
+        if (!isCancelled) {
+          setFoundPaths([]);
         }
       } catch (error) {
         console.error("Failed to fetch routes", error);
+        if (!isCancelled) {
+          setFoundPaths([]);
+        }
       } finally {
-        setIsLoading(false);
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -173,7 +215,10 @@ export default function TrackerSearchApp() {
         fetchPaths();
     }, 300); 
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      isCancelled = true;
+      clearTimeout(timeoutId);
+    };
 
   }, [deferredSource, deferredTarget, maxJumps, maxDays]);
 

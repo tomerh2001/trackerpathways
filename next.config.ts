@@ -14,12 +14,9 @@ const cspHeader = `
 `;
 
 const isGitHubPagesBuild = process.env.GITHUB_PAGES === "true";
+const repositoryName = process.env.GITHUB_REPOSITORY?.split("/")[1] || "";
 const repositoryBasePath = isGitHubPagesBuild
-  ? (() => {
-      const repositoryName = process.env.GITHUB_REPOSITORY?.split("/")[1];
-
-      return repositoryName ? `/${repositoryName}` : "";
-    })()
+  ? repositoryName ? `/${repositoryName}` : ""
   : "";
 
 const nextConfig: NextConfig = {
@@ -27,6 +24,9 @@ const nextConfig: NextConfig = {
   basePath: repositoryBasePath,
   assetPrefix: repositoryBasePath || undefined,
   trailingSlash: isGitHubPagesBuild,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: repositoryBasePath,
+  },
   images: {
     unoptimized: isGitHubPagesBuild,
   },
