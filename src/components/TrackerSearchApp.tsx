@@ -4,9 +4,11 @@ import { useState, useMemo, useEffect, useDeferredValue, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import rawData from "@/data/trackers.json"; 
 import { DataStructure, PathResult, RouteDetail } from "@/types"; 
+import { searchRoutes } from "@/lib/routeSearch";
 
 const data = rawData as unknown as DataStructure;
 const PATHS_PAGE_SIZE = 12;
+const useClientRouteSearch = process.env.NEXT_PUBLIC_USE_CLIENT_ROUTE_SEARCH === "true";
 
 interface UnlockRequirementSection {
   key: string;
@@ -151,6 +153,17 @@ export default function TrackerSearchApp() {
 
       setIsLoading(true);
       try {
+        if (useClientRouteSearch) {
+          const routes = searchRoutes(data, {
+            sourceRaw: deferredSource,
+            targetRaw: deferredTarget,
+            maxJumps,
+            maxDays,
+          });
+          setFoundPaths(routes);
+          return;
+        }
+
         const params = new URLSearchParams();
         if (deferredSource) params.append("source", deferredSource);
         if (deferredTarget) params.append("target", deferredTarget);
@@ -159,8 +172,8 @@ export default function TrackerSearchApp() {
 
         const res = await fetch(`/api/routes?${params.toString()}`);
         if (res.ok) {
-          const data = await res.json();
-          setFoundPaths(data);
+          const responseData = await res.json();
+          setFoundPaths(responseData);
         }
       } catch (error) {
         console.error("Failed to fetch routes", error);
