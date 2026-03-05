@@ -442,7 +442,7 @@ export default function DirectoryPageClient() {
 
   return (
     <main className="w-full px-6 pt-24 md:pt-32 pb-10 min-h-screen">
-      <div className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)_auto] md:items-end md:gap-6">
+      <div className="mb-12 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)_minmax(0,1fr)] md:items-end md:gap-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight mb-1 text-foreground">Tracker Directory</h1>
           <p className="text-sm text-foreground/60">
@@ -466,7 +466,7 @@ export default function DirectoryPageClient() {
           />
         </div>
 
-        <div className="w-full md:w-auto flex items-center justify-end gap-2 md:justify-self-end">
+        <div className="w-full flex items-center justify-end gap-2">
           <span className="text-sm font-medium text-foreground/60">Sort by</span>
           <div className="relative">
             <select
