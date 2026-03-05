@@ -13,12 +13,31 @@ const cspHeader = `
     upgrade-insecure-requests;
 `;
 
+const isGitHubPagesBuild = process.env.GITHUB_PAGES === "true";
+const repositoryBasePath = isGitHubPagesBuild
+  ? (() => {
+      const repositoryName = process.env.GITHUB_REPOSITORY?.split("/")[1];
+
+      return repositoryName ? `/${repositoryName}` : "";
+    })()
+  : "";
+
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: isGitHubPagesBuild ? "export" : "standalone",
+  basePath: repositoryBasePath,
+  assetPrefix: repositoryBasePath || undefined,
+  trailingSlash: isGitHubPagesBuild,
+  images: {
+    unoptimized: isGitHubPagesBuild,
+  },
   reactCompiler: true,
   poweredByHeader: false,
   allowedDevOrigins: ["trackerpathways.home.arpa"],
   async headers() {
+    if (isGitHubPagesBuild) {
+      return [];
+    }
+
     return [
       {
         source: "/:path*",
