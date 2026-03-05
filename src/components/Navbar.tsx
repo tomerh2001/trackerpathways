@@ -4,11 +4,23 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const getAssetBasePath = () => {
+  if (typeof window === "undefined") {
+    return process.env.NEXT_PUBLIC_BASE_PATH || "";
+  }
+
+  const firstPathSegment = window.location.pathname.split("/").filter(Boolean)[0];
+  if (!firstPathSegment || firstPathSegment === "map" || firstPathSegment === "directory") {
+    return "";
+  }
+
+  return `/${firstPathSegment}`;
+};
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const basePath = getAssetBasePath();
 
   const handleLogoClick = () => {
     if (pathname === "/") {

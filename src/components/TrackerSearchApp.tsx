@@ -8,7 +8,6 @@ import { searchRoutes } from "@/lib/routeSearch";
 
 const data = rawData as unknown as DataStructure;
 const PATHS_PAGE_SIZE = 12;
-const isClientRouteSearchEnabled = process.env.NEXT_PUBLIC_USE_CLIENT_ROUTE_SEARCH === "true";
 
 interface UnlockRequirementSection {
   key: string;
@@ -141,25 +140,17 @@ export default function TrackerSearchApp() {
     if (trackerParam) params.set("tracker", trackerParam);
 
     const nextQuery = params.toString();
-    if (isClientRouteSearchEnabled) {
-      const currentPathname = window.location.pathname;
-      const nextUrl = nextQuery ? `${currentPathname}?${nextQuery}` : currentPathname;
-      const currentUrl = `${currentPathname}${window.location.search}`;
+    const currentPathname = window.location.pathname;
+    const nextUrl = nextQuery ? `${currentPathname}?${nextQuery}` : currentPathname;
+    const currentUrl = `${currentPathname}${window.location.search}`;
 
-      if (nextUrl !== currentUrl) {
-        window.history.replaceState(window.history.state, "", nextUrl);
-      }
-
-      return;
+    if (nextUrl !== currentUrl) {
+      window.history.replaceState(window.history.state, "", nextUrl);
     }
-
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [deferredSource, deferredTarget, viewMode, maxJumps, maxDays, sortBy, sortDirection, mounted, pathname, router]);
+  }, [deferredSource, deferredTarget, viewMode, maxJumps, maxDays, sortBy, sortDirection, mounted]);
 
   useEffect(() => {
-    let isCancelled = false;
-
-    const fetchPaths = async () => {
+    const computePaths = () => {
       if (!deferredSource && !deferredTarget) {
         setFoundPaths([]);
         setIsLoading(false);
@@ -167,58 +158,21 @@ export default function TrackerSearchApp() {
       }
 
       setIsLoading(true);
-      try {
-        if (isClientRouteSearchEnabled) {
-          const nextPaths = searchRoutes(data, {
-            sourceRaw: deferredSource,
-            targetRaw: deferredTarget,
-            maxJumps,
-            maxDays,
-          });
-          if (!isCancelled) {
-            setFoundPaths(nextPaths);
-          }
-          return;
-        }
-
-        const params = new URLSearchParams();
-        if (deferredSource) params.append("source", deferredSource);
-        if (deferredTarget) params.append("target", deferredTarget);
-        params.append("jumps", maxJumps.toString());
-        if (maxDays) params.append("days", maxDays.toString());
-
-        const res = await fetch(`/api/routes?${params.toString()}`);
-        if (res.ok) {
-          const apiData = await res.json();
-          if (!isCancelled) {
-            setFoundPaths(apiData);
-          }
-          return;
-        }
-
-        if (!isCancelled) {
-          setFoundPaths([]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch routes", error);
-        if (!isCancelled) {
-          setFoundPaths([]);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
-      }
+      const nextPaths = searchRoutes(data, {
+        sourceRaw: deferredSource,
+        targetRaw: deferredTarget,
+        maxJumps,
+        maxDays,
+      });
+      setFoundPaths(nextPaths);
+      setIsLoading(false);
     };
 
     const timeoutId = setTimeout(() => {
-        fetchPaths();
+      computePaths();
     }, 300); 
 
-    return () => {
-      isCancelled = true;
-      clearTimeout(timeoutId);
-    };
+    return () => clearTimeout(timeoutId);
 
   }, [deferredSource, deferredTarget, maxJumps, maxDays]);
 

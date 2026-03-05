@@ -2,10 +2,22 @@
 
 import { usePathname } from "next/navigation";
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const getAssetBasePath = () => {
+  if (typeof window === "undefined") {
+    return process.env.NEXT_PUBLIC_BASE_PATH || "";
+  }
+
+  const firstPathSegment = window.location.pathname.split("/").filter(Boolean)[0];
+  if (!firstPathSegment || firstPathSegment === "map" || firstPathSegment === "directory") {
+    return "";
+  }
+
+  return `/${firstPathSegment}`;
+};
 
 export default function Footer() {
   const pathname = usePathname();
+  const basePath = getAssetBasePath();
 
   if (pathname === "/map") {
     return null;
