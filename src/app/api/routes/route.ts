@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import rawData from "@/data/trackers.json";
-import { DataStructure } from "@/types";
-import { searchRoutes } from "@/lib/routeSearch";
+import { DataStructure, PathResult } from "@/types";
 
 const data = rawData as unknown as DataStructure;
+
+interface RouteSearchResult extends PathResult {
+  stepDays: Array<number | null>;
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -12,12 +15,132 @@ export async function GET(request: Request) {
   const maxJumps = Number.parseInt(searchParams.get("jumps") || "1", 10);
   const maxDaysStr = searchParams.get("days");
   const maxDays = maxDaysStr ? Number.parseInt(maxDaysStr, 10) : null;
-  const results = searchRoutes(data, {
-    sourceRaw,
-    targetRaw,
-    maxJumps,
-    maxDays,
+
+  const sQueryRaw = sourceRaw.toLowerCase().trim();
+  const sourceInputs = sQueryRaw ? sQueryRaw.split(',').map(s => s.trim()).filter(s => s) : [];
+  const tQuery = targetRaw.toLowerCase().trim();
+
+  if (!sQueryRaw && !tQuery) {
+    return NextResponse.json([]);
+  }
+
+  const getAbbr = (name: string) => {
+    if (data.abbrList[name]) return data.abbrList[name];
+    const capitals = name.match(/[A-Z]/g);
+    if (capitals && capitals.length >= 2) return capitals.join("");
+    return name.substring(0, 3).toUpperCase();
+  };
+
+  const allTrackerKeys = Object.keys(data.routeInfo);
+  const allTrackers = Array.from(new Set([
+    ...allTrackerKeys,
+    ...allTrackerKeys.flatMap(k => Object.keys(data.routeInfo[k] || {}))
+  ]));
+
+  const isStrictTarget = allTrackers.some(t => 
+    t.toLowerCase() === tQuery || getAbbr(t).toLowerCase() === tQuery
+  );
+
+  let startNodes: string[] = [];
+
+  if (sourceInputs.length > 0) {
+    startNodes = allTrackerKeys.filter(t => {
+      const tLower = t.toLowerCase();
+      const tAbbr = getAbbr(t).toLowerCase();
+      return sourceInputs.some(input => {
+        const isStrictInput = allTrackers.some(validT => validT.toLowerCase() === input || getAbbr(validT).toLowerCase() === input);
+        if (isStrictInput) {
+          return tLower === input || tAbbr === input;
+        }
+        return tLower.includes(input) || tAbbr === input;
+      });
+    });
+  } else if (tQuery) {
+    startNodes = allTrackerKeys;
+  }
+
+  const startNodeSet = new Set(startNodes);
+  const results: RouteSearchResult[] = [];
+  const queue: RouteSearchResult[] = [];
+
+  startNodes.forEach(start => {
+    queue.push({
+      source: start,
+      target: start,
+      nodes: [start],
+      totalDays: 0,
+      stepDays: [],
+      routes: []
+    });
   });
+
+  const MAX_PATHS_LIMIT = 2000; 
+  let pathsFound = 0;
+
+  while (queue.length > 0) {
+    if (pathsFound >= MAX_PATHS_LIMIT) break;
+
+    const currentPath = queue.shift();
+    if (!currentPath) continue;
+
+    const currentNode = currentPath.nodes[currentPath.nodes.length - 1];
+    if (!currentNode) continue;
+
+    if (currentPath.nodes.length > 1) {
+      let isTargetMatch = true;
+      if (tQuery) {
+        const cName = currentNode.toLowerCase();
+        const cAbbr = getAbbr(currentNode).toLowerCase();
+        if (isStrictTarget) {
+          isTargetMatch = cName === tQuery || cAbbr === tQuery;
+        } else {
+          isTargetMatch = cName.includes(tQuery) || cAbbr.includes(tQuery);
+        }
+      }
+
+      if (isTargetMatch) {
+        if (maxDays === null || (currentPath.totalDays !== null && currentPath.totalDays <= maxDays)) {
+          results.push(currentPath);
+          pathsFound++;
+        }
+      }
+    }
+
+    if (currentPath.routes.length >= maxJumps) continue;
+
+    const neighbors = data.routeInfo[currentNode];
+    if (neighbors) {
+      for (const [nextTracker, details] of Object.entries(neighbors)) {
+        if (startNodeSet.has(nextTracker) && nextTracker.toLowerCase() !== tQuery) {
+          continue;
+        }
+
+        if (!currentPath.nodes.includes(nextTracker)) {
+          const edgeDays = details.days;
+          const forumReq = data.unlockInviteClass[currentNode];
+          const forumDays = forumReq?.[0] ?? 0;
+          let stepDays: number | null = null;
+          
+          if (edgeDays !== null) {
+            stepDays = Math.max(edgeDays, forumDays);
+          }
+
+          const nextTotalDays = (currentPath.totalDays === null || stepDays === null) ? null : currentPath.totalDays + stepDays;
+
+          if (maxDays !== null && nextTotalDays !== null && nextTotalDays > maxDays) continue;
+
+          queue.push({
+            source: currentPath.source,
+            target: nextTracker,
+            nodes: [...currentPath.nodes, nextTracker],
+            totalDays: nextTotalDays,
+            stepDays: [...currentPath.stepDays, stepDays],
+            routes: [...currentPath.routes, details]
+          });
+        }
+      }
+    }
+  }
 
   return NextResponse.json(results);
 }
