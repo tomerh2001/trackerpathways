@@ -260,7 +260,7 @@ export default function TrackerSearchApp() {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOfficialInvitesDialog(null);
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(window.location.search);
         params.delete("tracker");
         const nextQuery = params.toString();
         router.push(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
@@ -741,7 +741,7 @@ export default function TrackerSearchApp() {
   }, [sortedPaths]);
 
   const setDialogTrackerInUrl = (trackerName: string | null, method: "push" | "replace" = "push") => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(window.location.search);
     if (trackerName) {
       params.set("tracker", trackerName);
     } else {
